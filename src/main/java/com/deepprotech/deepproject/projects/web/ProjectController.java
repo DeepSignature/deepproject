@@ -1,0 +1,79 @@
+package com.deepprotech.deepproject.projects.web;
+
+import com.deepprotech.deepproject.core.Project;
+import com.deepprotech.deepproject.projects.api.*;
+import com.deepprotech.deepproject.projects.commands.ChangeProjectStatusCommand;
+import com.deepprotech.deepproject.projects.commands.CreateProjectCommand;
+import com.deepprotech.deepproject.projects.commands.DeleteProjectCommand;
+import com.deepprotech.deepproject.projects.commands.UpdateProjectCommand;
+import com.deepprotech.deepproject.projects.dto.CreateProjectRequest;
+import com.deepprotech.deepproject.projects.dto.ProjectResponse;
+import com.deepprotech.deepproject.projects.dto.UpdateProjectRequest;
+import com.deepprotech.deepproject.projects.queries.GetProjectByIdQuery;
+import com.deepprotech.deepproject.projects.queries.ListProjectsByWorkspaceQuery;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/workspaces/{workspaceId}/projects")
+@RequiredArgsConstructor
+public class ProjectController {
+
+    private final CreateProjectService createProjectService;
+    private final UpdateProjectService updateProjectService;
+    private final ChangeProjectStatusService changeProjectStatusService;
+    private final DeleteProjectService deleteProjectService;
+    private final GetProjectQueryService getProjectQueryService;
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_READ')")
+    public ResponseEntity<List<ProjectResponse>> list(@PathVariable Long workspaceId) {
+        List<ProjectResponse> list = getProjectQueryService.handle(new ListProjectsByWorkspaceQuery(workspaceId)).stream()
+                .map(ProjectResponse::from)
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_READ')")
+    public ResponseEntity<ProjectResponse> get(@PathVariable Long id) {
+        Project p = getProjectQueryService.handle(new GetProjectByIdQuery(id));
+        return ResponseEntity.ok(ProjectResponse.from(p));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_CREATE')")
+    public ResponseEntity<ProjectResponse> create(@PathVariable Long workspaceId,
+                                                  @Valid @RequestBody CreateProjectRequest request) {
+        Project p = createProjectService.handle(new CreateProjectCommand(workspaceId, request.name(), request.description()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProjectResponse.from(p));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_UPDATE')")
+    public ResponseEntity<ProjectResponse> update(@PathVariable Long id,
+                                                  @Valid @RequestBody UpdateProjectRequest request) {
+        Project p = updateProjectService.handle(new UpdateProjectCommand(id, request.name(), request.description()));
+        return ResponseEntity.ok(ProjectResponse.from(p));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_UPDATE')")
+    public ResponseEntity<ProjectResponse> updateStatus(@PathVariable Long id, @RequestParam String status) {
+        Project p = changeProjectStatusService.handle(new ChangeProjectStatusCommand(id, status));
+        return ResponseEntity.ok(ProjectResponse.from(p));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('PERMISSION_PROJECT_DELETE')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        deleteProjectService.handle(new DeleteProjectCommand(id));
+        return ResponseEntity.noContent().build();
+    }
+}

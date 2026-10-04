@@ -1,0 +1,73 @@
+services:
+  postgres:
+    build:
+      context: ../postgres
+      dockerfile: Dockerfile
+    container_name: deepproject-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: deepproject_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d deepproject_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: deepproject-keycloak
+    ports:
+      - "8090:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/deepproject_db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_DB_SCHEMA: keycloak
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    command: start --import-realm
+    volumes:
+      - ../keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\n\r\n' >&3 && head -1 <&3 | grep -q 200"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  flyway:
+    image: flyway/flyway:11-alpine
+    container_name: deepproject-flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/deepproject_db?options=-c%20timezone=UTC -user=postgres -password=postgres -baselineOnMigrate=true -connectRetries=10 migrate
+    volumes:
+      - ../../database/scripts/migrations:/flyway/sql:ro
+    profiles:
+      - tools
+
+  grafana-lgtm:
+    image: 'grafana/otel-lgtm:latest'
+    container_name: deepproject-lgtm
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+    profiles:
+      - telemetry
+
+volumes:
+  pgdata:

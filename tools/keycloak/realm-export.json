@@ -1,0 +1,96 @@
+{
+  "id": "deepproject",
+  "realm": "deepproject",
+  "displayName": "Deep Project",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "SYSTEM_ADMIN" },
+      { "name": "ORGANIZATION_ADMIN" },
+      { "name": "ORGANIZATION_MEMBER" },
+      { "name": "WORKSPACE_ADMIN" },
+      { "name": "PROJECT_MANAGER" },
+      { "name": "CONTRIBUTOR" },
+      { "name": "VIEWER" },
+      { "name": "default-roles-deepproject" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "deepproject-api",
+      "name": "Deep Project API",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@deepproject.local",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SYSTEM_ADMIN", "default-roles-deepproject"]
+    },
+    {
+      "username": "john_doe",
+      "email": "john@deepproject.local",
+      "firstName": "John",
+      "lastName": "Doe",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "john123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CONTRIBUTOR", "default-roles-deepproject"]
+    },
+    {
+      "username": "jane_smith",
+      "email": "jane@deepproject.local",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "jane123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["VIEWER", "default-roles-deepproject"]
+    }
+  ]
+}

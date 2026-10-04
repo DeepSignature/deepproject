@@ -2,8 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'com.netflix.dgs.codegen' version '8.3.0'
-    id 'org.graalvm.buildtools.native' version '1.1.8'
+    id 'org.flywaydb.flyway' version '11.3.4'
 }
 
 group = 'com.deepprotech'
@@ -25,26 +24,30 @@ ext {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.springframework.boot:spring-boot-starter-hazelcast'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
-    implementation 'org.springframework.boot:spring-boot-starter-session-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'org.springframework.modulith:spring-modulith-runtime'
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-hazelcast-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-jdbc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-opentelemetry-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-session-jdbc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
     testCompileOnly 'org.projectlombok:lombok'
@@ -58,12 +61,15 @@ dependencyManagement {
     }
 }
 
-generateJava {
-    schemaPaths = ["${projectDir}/src/main/resources/graphql-client"]
-    packageName = 'com.deepprotech.deepproject.codegen'
-    generateClient = true
-}
-
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+flyway {
+    url = project.findProperty('flyway.url') ?: 'jdbc:postgresql://localhost:5432/deepproject_db?options=-c%20timezone=UTC'
+    user = project.findProperty('flyway.user') ?: 'postgres'
+    password = project.findProperty('flyway.password') ?: 'postgres'
+    locations = ['filesystem:database/scripts/migrations']
+    baselineOnMigrate = true
+    cleanDisabled = false
 }
