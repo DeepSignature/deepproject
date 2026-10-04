@@ -94,7 +94,7 @@ function Invoke-Reset {
 
 function Invoke-Seed {
     Write-Host "Discovering and applying local /test-data scripts..." -ForegroundColor Cyan
-    $testDataDir = "$ProjectRoot\test-data"
+    $testDataDir = "$ProjectRoot\database\scripts\test-data"
 
     if (-not (Test-Path $testDataDir)) {
         Write-Host "No /test-data folder found at $testDataDir." -ForegroundColor DarkGray

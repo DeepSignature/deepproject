@@ -64,8 +64,8 @@ Authentication via Keycloak OAuth2 Resource Server with in-app role-to-permissio
 
 ## Database Migrations & Local Test Data
 
-- **Schema Migrations**: Stored in `database/scripts/migrations/` (e.g. `V1__init_schema.sql`, `V2__keycloak_org_identity.sql`). Executed via dedicated Flyway container (`flyway/flyway:11-alpine`) mounted to `database/scripts/migrations/`.
-- **Local Test Data**: Stored in root `/test-data/` (e.g. `01_seed_test_data.sql`). These scripts are **never** bundled into the production artifact and run exclusively in local environments via `tools/scripts/start-dev-db.ps1`.
+- **Schema Migrations**: Stored in `database/scripts/migrations/` (e.g. `V1_20261004_1649__init_schema.sql`, `V1_20261004_1721__add_keycloak_org_identity.sql`). Executed via dedicated Flyway container (`flyway/flyway:11-alpine`) mounted to `database/scripts/migrations/`.
+- **Local Test Data**: Stored in root `/test-data/` (e.g. `R_seed_test_data.sql`). These scripts are **never** bundled into the production artifact and run exclusively in local environments via `tools/scripts/start-dev-db.ps1`.
 
 ## Architecture & Code Guidelines
 
@@ -94,7 +94,7 @@ Every domain module (`iam`, `organizations`, `workspaces`, `projects`, `tasks`, 
 
 ### 4. Database Auditing (`_h` Tables)
 - Audit history is automated via PostgreSQL shadow tables (`<table>_h`) and `fn_audit_history()` trigger function.
-- Flyway migration `V1__init_schema.sql` automatically registers all base tables in an automated loop.
+- Flyway migration `V1_20261004_1649__init_schema.sql` automatically registers all base tables in an automated loop.
 - User context is injected dynamically by `AuditContextInterceptor` executing `SET LOCAL app.current_user = '...'`.
 
 ### 5. Testing & Modulith Boundaries
