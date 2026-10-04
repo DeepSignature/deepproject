@@ -3,9 +3,10 @@ package com.deepprotech.deepproject.notifications.services;
 import com.deepprotech.deepproject.notifications.api.ManageNotificationStatusService;
 import com.deepprotech.deepproject.notifications.commands.MarkAllNotificationsReadCommand;
 import com.deepprotech.deepproject.notifications.commands.MarkNotificationReadCommand;
+import com.deepprotech.deepproject.notifications.constants.NotificationStatus;
+import com.deepprotech.deepproject.notifications.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,19 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ManageNotificationStatusServiceImpl implements ManageNotificationStatusService {
 
-    private final JdbcTemplate jdbc;
+    private final NotificationRepository notificationRepository;
 
     @Override
     @Transactional
     public void handle(MarkNotificationReadCommand command) {
-        jdbc.update("UPDATE notifications SET status = 'READ', updated_at = CURRENT_TIMESTAMP WHERE id = ?", command.notificationId());
+        notificationRepository.findById(command.notificationId()).ifPresent(notification -> {
+            notification.setStatus(NotificationStatus.READ.name());
+            notificationRepository.save(notification);
+        });
         log.info("notification_marked_read id={}", command.notificationId());
     }
 
     @Override
     @Transactional
     public void handle(MarkAllNotificationsReadCommand command) {
-        jdbc.update("UPDATE notifications SET status = 'READ', updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND status = 'UNREAD'", command.userId());
+        notificationRepository.markAllAsReadByUserId(command.userId());
         log.info("all_notifications_marked_read userId={}", command.userId());
     }
 }

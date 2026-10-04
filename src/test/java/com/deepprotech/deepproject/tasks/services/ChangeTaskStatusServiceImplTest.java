@@ -3,48 +3,47 @@ package com.deepprotech.deepproject.tasks.services;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.commands.ChangeTaskStatusCommand;
+import com.deepprotech.deepproject.tasks.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ChangeTaskStatusServiceImplTest {
 
-    @Mock JdbcTemplate jdbc;
+    @Mock TaskRepository taskRepository;
     @Mock ApplicationEventPublisher eventPublisher;
     @InjectMocks ChangeTaskStatusServiceImpl service;
 
     @Test
     void changesStatus() {
-        Task task = Task.builder().id(1L).projectId(1L).title("T").description("D").status("TODO").priority("HIGH").taskType("TASK").build();
-        when(jdbc.query(eq("SELECT * FROM tasks WHERE id = ?"), any(RowMapper.class), eq(1L))).thenReturn(List.of(task));
+        ChangeTaskStatusCommand cmd = new ChangeTaskStatusCommand(100L, "DONE");
+        Task task = Task.builder().id(100L).title("Task").status("IN_PROGRESS").build();
+        when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Task result = service.handle(new ChangeTaskStatusCommand(1L, "IN_PROGRESS"));
+        Task result = service.handle(cmd);
 
-        assertThat(result.getStatus()).isEqualTo("IN_PROGRESS");
-        verify(jdbc).update(eq("UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?"), eq("IN_PROGRESS"), any(), eq(1L));
+        assertThat(result.getStatus()).isEqualTo("DONE");
+        verify(taskRepository).save(task);
         verify(eventPublisher).publishEvent(any(Object.class));
     }
 
     @Test
     void throwsWhenTaskNotFound() {
-        when(jdbc.query(eq("SELECT * FROM tasks WHERE id = ?"), any(RowMapper.class), eq(999L))).thenReturn(Collections.emptyList());
-        assertThatThrownBy(() -> service.handle(new ChangeTaskStatusCommand(999L, "DONE")))
-                .isInstanceOf(ResourceNotFoundException.class);
+        ChangeTaskStatusCommand cmd = new ChangeTaskStatusCommand(999L, "DONE");
+        when(taskRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

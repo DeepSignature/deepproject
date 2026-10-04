@@ -20,7 +20,7 @@ services:
       retries: 10
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.1
+    image: quay.io/keycloak/keycloak:26.8
     container_name: deepproject-keycloak
     ports:
       - "8090:8080"

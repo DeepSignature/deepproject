@@ -3,45 +3,45 @@ package com.deepprotech.deepproject.workspaces.services;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Workspace;
 import com.deepprotech.deepproject.workspaces.commands.UpdateWorkspaceCommand;
+import com.deepprotech.deepproject.workspaces.repository.WorkspaceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateWorkspaceServiceImplTest {
 
-    @Mock JdbcTemplate jdbc;
+    @Mock WorkspaceRepository workspaceRepository;
     @InjectMocks UpdateWorkspaceServiceImpl service;
 
     @Test
     void updatesWorkspaceReturnsIt() {
         UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(1L, "New WS", "New Desc");
-        Workspace ws = Workspace.builder().id(1L).name("New WS").slug("ws").description("New Desc").ownerId(1L).build();
-        when(jdbc.query(eq("SELECT * FROM workspaces WHERE id = ?"), any(RowMapper.class), eq(1L))).thenReturn(List.of(ws));
+        Workspace ws = Workspace.builder().id(1L).name("Old WS").slug("ws").description("Old Desc").ownerId(1L).build();
+        when(workspaceRepository.findById(1L)).thenReturn(Optional.of(ws));
+        when(workspaceRepository.save(any(Workspace.class))).thenAnswer(inv -> inv.getArgument(0));
+
         Workspace result = service.handle(cmd);
+
         assertThat(result.getName()).isEqualTo("New WS");
-        verify(jdbc).update(eq("UPDATE workspaces SET name = ?, description = ?, updated_at = ? WHERE id = ?"),
-                eq("New WS"), eq("New Desc"), any(), eq(1L));
+        assertThat(result.getDescription()).isEqualTo("New Desc");
+        verify(workspaceRepository).save(ws);
     }
 
     @Test
     void throwsWhenNotFound() {
         UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(999L, "New WS", "New Desc");
-        when(jdbc.query(eq("SELECT * FROM workspaces WHERE id = ?"), any(RowMapper.class), eq(999L))).thenReturn(Collections.emptyList());
+        when(workspaceRepository.findById(999L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

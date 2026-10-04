@@ -82,21 +82,25 @@ Every domain module (`iam`, `organizations`, `workspaces`, `projects`, `tasks`, 
 - **`commands/`**: Immutable Java records representing state-changing operations (e.g., `CreateWorkspaceCommand`, `AddOrganizationMemberCommand`).
 - **`queries/`**: Immutable Java records representing read operations (e.g., `GetWorkspaceByIdQuery`, `GetMeQuery`).
 - **`dto/`**: Web REST request/response records (e.g., `CreateWorkspaceRequest`, `UserProfileResponse`).
-- **`constants/`**: Domain-specific enums and constant classes (e.g., `WorkspaceRole`, `OrganizationRole`).
+- **`constants/`**: Domain-specific enums and constant classes (e.g., `WorkspaceRole`, `OrganizationRole`, `ProjectStatus`, `TaskStatus`, `TaskPriority`, `TaskType`, `NotificationStatus`, `NotificationType`).
 - **`events/`**: Inter-module domain event records (e.g., `WorkspaceCreatedEvent`, `OrganizationCreatedEvent`). Marked with `@NamedInterface("events")`.
 - **`web/`**: Spring MVC REST controllers with `@PreAuthorize("hasAuthority('PERMISSION_...')")`.
 
-### 3. CQRS Pattern & Granular Services
+### 3. Enums vs. Hardcoded Constants
+- **Always use domain Enums**: Statuses, roles, priorities, types, and other categorical values MUST be modeled as Java `enum` types in `constants/` (e.g., `NotificationStatus.READ.name()`, `TaskStatus.TODO.name()`, `ProjectStatus.ACTIVE.name()`).
+- **Never use hardcoded reusable strings**: Raw literal strings like `"READ"`, `"UNREAD"`, `"ACTIVE"`, `"TODO"`, `"MEMBER"`, `"OWNER"` must never be hardcoded in services, controllers, or queries when a corresponding domain enum exists.
+
+### 4. CQRS Pattern & Granular Services
 - Do **NOT** build fat monolithic CRUD services (e.g. `WorkspaceService`).
 - Each business use case must have a specific, single-purpose service interface in `api/` and implementation in `services/`.
-- **Write Operations (Commands)**: Use `@Transactional`, modify state via Spring JDBC, publish domain events via `ApplicationEventPublisher`.
+- **Write Operations (Commands)**: Use `@Transactional`, modify state via JPA/Hibernate repositories, publish domain events via `ApplicationEventPublisher`.
 - **Read Operations (Queries)**: Use `@Transactional(readOnly = true)`, return projection records or core entities.
 
-### 4. Database Auditing (`_h` Tables)
+### 5. Database Auditing (`_h` Tables)
 - Audit history is automated via PostgreSQL shadow tables (`<table>_h`) and `fn_audit_history()` trigger function.
 - Flyway migration `V1_20261004_1649__init_schema.sql` automatically registers all base tables in an automated loop.
 - User context is injected dynamically by `AuditContextInterceptor` executing `SET LOCAL app.current_user = '...'`.
 
-### 5. Testing & Modulith Boundaries
+### 6. Testing & Modulith Boundaries
 - Module isolation and boundary enforcement is tested via Spring Modulith in `ModuleArchitectureTests.java`.
 - Run `./gradlew test --tests "com.deepprotech.deepproject.ModuleArchitectureTests"` to verify architecture boundaries.

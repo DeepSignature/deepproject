@@ -3,50 +3,45 @@ package com.deepprotech.deepproject.organizations.services;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Organization;
 import com.deepprotech.deepproject.organizations.commands.UpdateOrganizationCommand;
+import com.deepprotech.deepproject.organizations.repository.OrganizationRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateOrganizationServiceImplTest {
 
-    @Mock JdbcTemplate jdbc;
+    @Mock OrganizationRepository organizationRepository;
     @InjectMocks UpdateOrganizationServiceImpl service;
 
     @Test
     void updatesOrgReturnsIt() {
-        UpdateOrganizationCommand cmd = new UpdateOrganizationCommand(1L, "New Name", "New Desc");
-        Organization org = Organization.builder().id(1L).identifier("my-org").name("New Name").description("New Desc").build();
-
-        when(jdbc.query(eq("SELECT * FROM organizations WHERE id = ?"), any(RowMapper.class), eq(1L))).thenReturn(List.of(org));
+        UpdateOrganizationCommand cmd = new UpdateOrganizationCommand(10L, "New Name", "New Desc");
+        Organization org = Organization.builder().id(10L).identifier("acme").name("Old Name").description("Old Desc").build();
+        when(organizationRepository.findById(10L)).thenReturn(Optional.of(org));
+        when(organizationRepository.save(any(Organization.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Organization result = service.handle(cmd);
 
         assertThat(result.getName()).isEqualTo("New Name");
-        verify(jdbc).update(eq("UPDATE organizations SET name = ?, description = ?, updated_at = ? WHERE id = ?"),
-                eq("New Name"), eq("New Desc"), any(), eq(1L));
+        assertThat(result.getDescription()).isEqualTo("New Desc");
+        verify(organizationRepository).save(org);
     }
 
     @Test
     void throwsWhenOrgNotFound() {
-        UpdateOrganizationCommand cmd = new UpdateOrganizationCommand(999L, "New Name", "New Desc");
-        when(jdbc.query(eq("SELECT * FROM organizations WHERE id = ?"), any(RowMapper.class), eq(999L))).thenReturn(Collections.emptyList());
-
-        assertThatThrownBy(() -> service.handle(cmd))
-                .isInstanceOf(ResourceNotFoundException.class);
+        UpdateOrganizationCommand cmd = new UpdateOrganizationCommand(999L, "Name", "Desc");
+        when(organizationRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

@@ -8,10 +8,10 @@ import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdQuer
 import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdentifierQuery;
 import com.deepprotech.deepproject.organizations.queries.ListOrganizationMembersQuery;
 import com.deepprotech.deepproject.organizations.queries.ListUserOrganizationsQuery;
+import com.deepprotech.deepproject.organizations.repository.OrganizationMemberRepository;
+import com.deepprotech.deepproject.organizations.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,44 +23,28 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GetOrganizationQueryServiceImpl implements GetOrganizationQueryService {
 
-    private final JdbcTemplate jdbc;
-
-    private static final RowMapper<Organization> ORG_MAPPER = (rs, rowNum) -> Organization.builder()
-            .id(rs.getLong("id"))
-            .identifier(rs.getString("identifier"))
-            .name(rs.getString("name"))
-            .description(rs.getString("description"))
-            .build();
-
-    private static final RowMapper<OrganizationMember> OM_MAPPER = (rs, rowNum) -> OrganizationMember.builder()
-            .id(rs.getLong("id"))
-            .organizationId(rs.getLong("organization_id"))
-            .userId(rs.getLong("user_id"))
-            .role(rs.getString("role"))
-            .build();
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationMemberRepository organizationMemberRepository;
 
     @Override
     public Organization handle(GetOrganizationByIdQuery query) {
-        List<Organization> list = jdbc.query("SELECT * FROM organizations WHERE id = ?", ORG_MAPPER, query.organizationId());
-        if (list.isEmpty()) throw new ResourceNotFoundException("Organization", query.organizationId());
-        return list.get(0);
+        return organizationRepository.findById(query.organizationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Organization", query.organizationId()));
     }
 
     @Override
     public Organization handle(GetOrganizationByIdentifierQuery query) {
-        List<Organization> list = jdbc.query("SELECT * FROM organizations WHERE identifier = ?", ORG_MAPPER, query.identifier());
-        if (list.isEmpty()) throw new ResourceNotFoundException("Organization not found: " + query.identifier());
-        return list.get(0);
+        return organizationRepository.findByIdentifier(query.identifier())
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found: " + query.identifier()));
     }
 
     @Override
     public List<Organization> handle(ListUserOrganizationsQuery query) {
-        return jdbc.query("SELECT o.* FROM organizations o INNER JOIN organization_members om ON o.id = om.organization_id WHERE om.user_id = ?",
-                ORG_MAPPER, query.userId());
+        return organizationRepository.findOrganizationsByUserId(query.userId());
     }
 
     @Override
     public List<OrganizationMember> handle(ListOrganizationMembersQuery query) {
-        return jdbc.query("SELECT * FROM organization_members WHERE organization_id = ?", OM_MAPPER, query.organizationId());
+        return organizationMemberRepository.findByOrganizationId(query.organizationId());
     }
 }

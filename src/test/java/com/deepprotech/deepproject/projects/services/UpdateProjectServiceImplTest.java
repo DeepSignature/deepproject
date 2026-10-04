@@ -3,47 +3,45 @@ package com.deepprotech.deepproject.projects.services;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Project;
 import com.deepprotech.deepproject.projects.commands.UpdateProjectCommand;
+import com.deepprotech.deepproject.projects.repository.ProjectRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateProjectServiceImplTest {
 
-    @Mock JdbcTemplate jdbc;
+    @Mock ProjectRepository projectRepository;
     @InjectMocks UpdateProjectServiceImpl service;
 
     @Test
     void updatesProjectReturnsIt() {
-        UpdateProjectCommand cmd = new UpdateProjectCommand(1L, "Updated", "Updated Desc");
-        Project project = Project.builder().id(1L).workspaceId(1L).name("Updated").description("Updated Desc").status("ACTIVE").build();
-        when(jdbc.query(eq("SELECT * FROM projects WHERE id = ?"), any(RowMapper.class), eq(1L))).thenReturn(List.of(project));
+        UpdateProjectCommand cmd = new UpdateProjectCommand(10L, "New Proj", "New Desc");
+        Project p = Project.builder().id(10L).name("Old Proj").description("Old Desc").build();
+        when(projectRepository.findById(10L)).thenReturn(Optional.of(p));
+        when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Project result = service.handle(cmd);
 
-        assertThat(result.getName()).isEqualTo("Updated");
-        verify(jdbc).update(eq("UPDATE projects SET name = ?, description = ?, updated_at = ? WHERE id = ?"),
-                eq("Updated"), eq("Updated Desc"), any(), eq(1L));
+        assertThat(result.getName()).isEqualTo("New Proj");
+        assertThat(result.getDescription()).isEqualTo("New Desc");
+        verify(projectRepository).save(p);
     }
 
     @Test
     void throwsWhenNotFound() {
-        UpdateProjectCommand cmd = new UpdateProjectCommand(999L, "Updated", "Updated Desc");
-        when(jdbc.query(eq("SELECT * FROM projects WHERE id = ?"), any(RowMapper.class), eq(999L))).thenReturn(Collections.emptyList());
+        UpdateProjectCommand cmd = new UpdateProjectCommand(999L, "New Proj", "New Desc");
+        when(projectRepository.findById(999L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }
