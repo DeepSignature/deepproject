@@ -10,6 +10,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -20,10 +22,10 @@ import lombok.experimental.SuperBuilder;
 public class WorkspaceMember extends BaseEntity {
 
     @Column(name = "workspace_id", nullable = false)
-    private Long workspaceId;
+    private UUID workspaceId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private UUID userId;
 
     @Builder.Default
     @Column(name = "role", nullable = false, length = 50)

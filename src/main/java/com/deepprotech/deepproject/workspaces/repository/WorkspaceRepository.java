@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
+public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
     Optional<Workspace> findBySlug(String slug);
 
     @Query("SELECT w FROM Workspace w WHERE w.id IN (SELECT wm.workspaceId FROM WorkspaceMember wm WHERE wm.userId = :userId)")
-    List<Workspace> findWorkspacesByUserId(@Param("userId") Long userId);
+    List<Workspace> findWorkspacesByUserId(@Param("userId") UUID userId);
 }

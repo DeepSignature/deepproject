@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -19,8 +21,8 @@ import lombok.experimental.SuperBuilder;
 public class TaskAssignee extends BaseEntity {
 
     @Column(name = "task_id", nullable = false)
-    private Long taskId;
+    private UUID taskId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private UUID userId;
 }

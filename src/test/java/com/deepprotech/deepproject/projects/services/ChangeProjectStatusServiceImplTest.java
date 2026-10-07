@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,15 +23,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ChangeProjectStatusServiceImplTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("a0000001-0000-0000-0000-0000000999");
+
     @Mock ProjectRepository projectRepository;
     @Mock ApplicationEventPublisher eventPublisher;
     @InjectMocks ChangeProjectStatusServiceImpl service;
 
     @Test
     void changesStatus() {
-        ChangeProjectStatusCommand cmd = new ChangeProjectStatusCommand(10L, "COMPLETED");
-        Project p = Project.builder().id(10L).name("Proj").status("ACTIVE").build();
-        when(projectRepository.findById(10L)).thenReturn(Optional.of(p));
+        ChangeProjectStatusCommand cmd = new ChangeProjectStatusCommand(PROJECT_ID, "COMPLETED");
+        Project p = Project.builder().id(PROJECT_ID).name("Proj").status("ACTIVE").build();
+        when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(p));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Project result = service.handle(cmd);
@@ -42,8 +46,8 @@ class ChangeProjectStatusServiceImplTest {
 
     @Test
     void throwsWhenProjectNotFound() {
-        ChangeProjectStatusCommand cmd = new ChangeProjectStatusCommand(999L, "COMPLETED");
-        when(projectRepository.findById(999L)).thenReturn(Optional.empty());
+        ChangeProjectStatusCommand cmd = new ChangeProjectStatusCommand(UNKNOWN_ID, "COMPLETED");
+        when(projectRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

@@ -6,128 +6,115 @@
 -- 1. Seed Organizations
 INSERT INTO organizations (id, identifier, name, description)
 VALUES
-    (1, 'deep-engineering', 'Deep Engineering', 'Core engineering organization'),
-    (2, 'product-mgmt', 'Product Management', 'Product roadmap and design org')
+    ('a0000003-0000-0000-0000-000000000001', 'deep-engineering', 'Deep Engineering', 'Core engineering organization'),
+    ('a0000003-0000-0000-0000-000000000002', 'product-mgmt', 'Product Management', 'Product roadmap and design org')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('organizations_id_seq', (SELECT COALESCE(MAX(id), 1) FROM organizations));
 
 -- 2. Seed IAM Users
 INSERT INTO users (id, identity_id, username, email, display_name, active)
 VALUES
-    (1, 'kc-admin-00001', 'admin', 'admin@deepproject.local', 'Admin User', true),
-    (2, 'kc-john-00002', 'john_doe', 'john@deepproject.local', 'John Doe', true),
-    (3, 'kc-jane-00003', 'jane_smith', 'jane@deepproject.local', 'Jane Smith', true)
+    ('a0000002-0000-0000-0000-000000000001', 'kc-admin-00001', 'admin', 'admin@deepproject.local', 'Admin User', true),
+    ('a0000002-0000-0000-0000-000000000002', 'kc-john-00002', 'john_doe', 'john@deepproject.local', 'John Doe', true),
+    ('a0000002-0000-0000-0000-000000000003', 'kc-jane-00003', 'jane_smith', 'jane@deepproject.local', 'Jane Smith', true)
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users));
 
 -- 3. Seed IAM Roles
 INSERT INTO roles (id, name, description)
 VALUES
-    (1, 'ADMIN', 'System Administrator with full access'),
-    (2, 'MEMBER', 'Standard Member'),
-    (3, 'VIEWER', 'Read-only Viewer')
+    ('a0000004-0000-0000-0000-000000000001', 'ADMIN', 'System Administrator with full access'),
+    ('a0000004-0000-0000-0000-000000000002', 'MEMBER', 'Standard Member'),
+    ('a0000004-0000-0000-0000-000000000003', 'VIEWER', 'Read-only Viewer')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('roles_id_seq', (SELECT COALESCE(MAX(id), 1) FROM roles));
 
 -- 4. Seed User Roles
 INSERT INTO user_roles (user_id, role_id)
 VALUES
-    (1, 1),
-    (2, 2),
-    (3, 2)
+    ('a0000002-0000-0000-0000-000000000001', 'a0000004-0000-0000-0000-000000000001'),
+    ('a0000002-0000-0000-0000-000000000002', 'a0000004-0000-0000-0000-000000000002'),
+    ('a0000002-0000-0000-0000-000000000003', 'a0000004-0000-0000-0000-000000000002')
 ON CONFLICT (user_id, role_id) DO NOTHING;
 
 -- 5. Seed Organization Members
 INSERT INTO organization_members (id, organization_id, user_id, role)
 VALUES
-    (1, 1, 1, 'ORGANIZATION_ADMIN'),
-    (2, 1, 2, 'ORGANIZATION_MEMBER'),
-    (3, 1, 3, 'ORGANIZATION_MEMBER'),
-    (4, 2, 2, 'ORGANIZATION_ADMIN'),
-    (5, 2, 3, 'ORGANIZATION_MEMBER')
+    ('a0000005-0000-0000-0000-000000000001', 'a0000003-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000001', 'ORGANIZATION_ADMIN'),
+    ('a0000005-0000-0000-0000-000000000002', 'a0000003-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000002', 'ORGANIZATION_MEMBER'),
+    ('a0000005-0000-0000-0000-000000000003', 'a0000003-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000003', 'ORGANIZATION_MEMBER'),
+    ('a0000005-0000-0000-0000-000000000004', 'a0000003-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000002', 'ORGANIZATION_ADMIN'),
+    ('a0000005-0000-0000-0000-000000000005', 'a0000003-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000003', 'ORGANIZATION_MEMBER')
 ON CONFLICT (organization_id, user_id) DO NOTHING;
-SELECT setval('organization_members_id_seq', (SELECT COALESCE(MAX(id), 1) FROM organization_members));
 
 -- 6. Seed Workspaces
 INSERT INTO workspaces (id, name, slug, description, owner_id, organization_id)
 VALUES
-    (1, 'Deep Engineering', 'deep-engineering', 'Main workspace for core engineering projects', 1, 1),
-    (2, 'Product Management', 'product-mgmt', 'Workspace for product roadmap and design', 2, 2)
+    ('a0000006-0000-0000-0000-000000000001', 'Deep Engineering', 'deep-engineering', 'Main workspace for core engineering projects', 'a0000002-0000-0000-0000-000000000001', 'a0000003-0000-0000-0000-000000000001'),
+    ('a0000006-0000-0000-0000-000000000002', 'Product Management', 'product-mgmt', 'Workspace for product roadmap and design', 'a0000002-0000-0000-0000-000000000002', 'a0000003-0000-0000-0000-000000000002')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('workspaces_id_seq', (SELECT COALESCE(MAX(id), 1) FROM workspaces));
 
 -- 7. Seed Workspace Members
 INSERT INTO workspace_members (id, workspace_id, user_id, role)
 VALUES
-    (1, 1, 1, 'OWNER'),
-    (2, 1, 2, 'ADMIN'),
-    (3, 1, 3, 'MEMBER'),
-    (4, 2, 2, 'OWNER'),
-    (5, 2, 3, 'MEMBER')
+    ('a0000007-0000-0000-0000-000000000001', 'a0000006-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000001', 'OWNER'),
+    ('a0000007-0000-0000-0000-000000000002', 'a0000006-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000002', 'ADMIN'),
+    ('a0000007-0000-0000-0000-000000000003', 'a0000006-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000003', 'MEMBER'),
+    ('a0000007-0000-0000-0000-000000000004', 'a0000006-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000002', 'OWNER'),
+    ('a0000007-0000-0000-0000-000000000005', 'a0000006-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000003', 'MEMBER')
 ON CONFLICT (workspace_id, user_id) DO NOTHING;
-SELECT setval('workspace_members_id_seq', (SELECT COALESCE(MAX(id), 1) FROM workspace_members));
 
 -- 8. Seed Projects
 INSERT INTO projects (id, workspace_id, name, description, status)
 VALUES
-    (1, 1, 'Project Alpha', 'Core backend platform development', 'ACTIVE'),
-    (2, 1, 'Project Beta', 'Mobile app client integration', 'ON_HOLD'),
-    (3, 2, 'Q4 Roadmap', 'Product roadmap planning and user research', 'ACTIVE')
+    ('a0000001-0000-0000-0000-000000000001', 'a0000006-0000-0000-0000-000000000001', 'Project Alpha', 'Core backend platform development', 'ACTIVE'),
+    ('a0000001-0000-0000-0000-000000000002', 'a0000006-0000-0000-0000-000000000001', 'Project Beta', 'Mobile app client integration', 'ON_HOLD'),
+    ('a0000001-0000-0000-0000-000000000003', 'a0000006-0000-0000-0000-000000000002', 'Q4 Roadmap', 'Product roadmap planning and user research', 'ACTIVE')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('projects_id_seq', (SELECT COALESCE(MAX(id), 1) FROM projects));
 
 -- 9. Seed Project Members
 INSERT INTO project_members (id, project_id, user_id, role)
 VALUES
-    (1, 1, 1, 'OWNER'),
-    (2, 1, 2, 'MEMBER'),
-    (3, 1, 3, 'MEMBER'),
-    (4, 3, 2, 'OWNER')
+    ('a0000008-0000-0000-0000-000000000001', 'a0000001-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000001', 'OWNER'),
+    ('a0000008-0000-0000-0000-000000000002', 'a0000001-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000002', 'MEMBER'),
+    ('a0000008-0000-0000-0000-000000000003', 'a0000001-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000003', 'MEMBER'),
+    ('a0000008-0000-0000-0000-000000000004', 'a0000001-0000-0000-0000-000000000003', 'a0000002-0000-0000-0000-000000000002', 'OWNER')
 ON CONFLICT (project_id, user_id) DO NOTHING;
-SELECT setval('project_members_id_seq', (SELECT COALESCE(MAX(id), 1) FROM project_members));
 
 -- 10. Seed Tasks
 INSERT INTO tasks (id, project_id, parent_task_id, title, description, status, priority, task_type)
 VALUES
-    (1, 1, NULL, 'Set up database migrations & auditing', 'Configure Flyway and shadow tables for audit trail', 'DONE', 'HIGH', 'TASK'),
-    (2, 1, NULL, 'Implement Task Management CQRS API', 'Create command and query services for task manipulation', 'IN_PROGRESS', 'HIGH', 'FEATURE'),
-    (3, 1, 2, 'Write unit tests for Task services', 'Add unit and architecture boundary tests', 'TODO', 'MEDIUM', 'TASK'),
-    (4, 3, NULL, 'User feedback interviews analysis', 'Consolidate user responses from September cohort', 'TODO', 'LOW', 'TASK')
+    ('a0000009-0000-0000-0000-000000000001', 'a0000001-0000-0000-0000-000000000001', NULL, 'Set up database migrations & auditing', 'Configure Flyway and shadow tables for audit trail', 'DONE', 'HIGH', 'TASK'),
+    ('a0000009-0000-0000-0000-000000000002', 'a0000001-0000-0000-0000-000000000001', NULL, 'Implement Task Management CQRS API', 'Create command and query services for task manipulation', 'IN_PROGRESS', 'HIGH', 'FEATURE'),
+    ('a0000009-0000-0000-0000-000000000003', 'a0000001-0000-0000-0000-000000000001', 'a0000009-0000-0000-0000-000000000002', 'Write unit tests for Task services', 'Add unit and architecture boundary tests', 'TODO', 'MEDIUM', 'TASK'),
+    ('a0000009-0000-0000-0000-000000000004', 'a0000001-0000-0000-0000-000000000003', NULL, 'User feedback interviews analysis', 'Consolidate user responses from September cohort', 'TODO', 'LOW', 'TASK')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('tasks_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tasks));
 
 -- 11. Seed Task Assignees & Tags
 INSERT INTO task_assignees (id, task_id, user_id)
 VALUES
-    (1, 1, 1),
-    (2, 2, 2),
-    (3, 3, 2),
-    (4, 4, 3)
+    ('a0000010-0000-0000-0000-000000000001', 'a0000009-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000001'),
+    ('a0000010-0000-0000-0000-000000000002', 'a0000009-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000002'),
+    ('a0000010-0000-0000-0000-000000000003', 'a0000009-0000-0000-0000-000000000003', 'a0000002-0000-0000-0000-000000000002'),
+    ('a0000010-0000-0000-0000-000000000004', 'a0000009-0000-0000-0000-000000000004', 'a0000002-0000-0000-0000-000000000003')
 ON CONFLICT (task_id, user_id) DO NOTHING;
-SELECT setval('task_assignees_id_seq', (SELECT COALESCE(MAX(id), 1) FROM task_assignees));
 
 INSERT INTO task_tags (id, task_id, tag_name)
 VALUES
-    (1, 1, 'database'),
-    (2, 1, 'infrastructure'),
-    (3, 2, 'backend'),
-    (4, 2, 'cqrs'),
-    (5, 3, 'testing')
+    ('a0000011-0000-0000-0000-000000000001', 'a0000009-0000-0000-0000-000000000001', 'database'),
+    ('a0000011-0000-0000-0000-000000000002', 'a0000009-0000-0000-0000-000000000001', 'infrastructure'),
+    ('a0000011-0000-0000-0000-000000000003', 'a0000009-0000-0000-0000-000000000002', 'backend'),
+    ('a0000011-0000-0000-0000-000000000004', 'a0000009-0000-0000-0000-000000000002', 'cqrs'),
+    ('a0000011-0000-0000-0000-000000000005', 'a0000009-0000-0000-0000-000000000003', 'testing')
 ON CONFLICT (task_id, tag_name) DO NOTHING;
-SELECT setval('task_tags_id_seq', (SELECT COALESCE(MAX(id), 1) FROM task_tags));
 
 -- 12. Seed Comments
 INSERT INTO comments (id, task_id, author_id, content)
 VALUES
-    (1, 1, 1, 'Flyway V1 script with automated audit trigger loop completed successfully.'),
-    (2, 2, 2, 'Working on the AssignTaskService implementation now.')
+    ('a0000012-0000-0000-0000-000000000001', 'a0000009-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000001', 'Flyway V1 script with automated audit trigger loop completed successfully.'),
+    ('a0000012-0000-0000-0000-000000000002', 'a0000009-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000002', 'Working on the AssignTaskService implementation now.')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('comments_id_seq', (SELECT COALESCE(MAX(id), 1) FROM comments));
 
 -- 13. Seed Notifications
 INSERT INTO notifications (id, user_id, title, message, notification_type, status, entity_type, entity_id)
 VALUES
-    (1, 2, 'Task Assigned', 'You have been assigned to task #2: Implement Task Management CQRS API', 'ASSIGNMENT', 'UNREAD', 'TASK', 2),
-    (2, 3, 'Added to Workspace', 'You have been added to Deep Engineering as MEMBER', 'INFO', 'READ', 'WORKSPACE', 1)
+    ('a0000013-0000-0000-0000-000000000001', 'a0000002-0000-0000-0000-000000000002', 'Task Assigned', 'You have been assigned to task #2: Implement Task Management CQRS API', 'ASSIGNMENT', 'UNREAD', 'TASK', 'a0000009-0000-0000-0000-000000000002'),
+    ('a0000013-0000-0000-0000-000000000002', 'a0000002-0000-0000-0000-000000000003', 'Added to Workspace', 'You have been added to Deep Engineering as MEMBER', 'INFO', 'READ', 'WORKSPACE', 'a0000006-0000-0000-0000-000000000001')
 ON CONFLICT (id) DO NOTHING;
-SELECT setval('notifications_id_seq', (SELECT COALESCE(MAX(id), 1) FROM notifications));

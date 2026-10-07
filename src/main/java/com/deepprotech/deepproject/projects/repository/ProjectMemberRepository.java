@@ -6,13 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Long> {
+public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UUID> {
 
-    List<ProjectMember> findByProjectId(Long projectId);
+    List<ProjectMember> findByProjectId(UUID projectId);
 
-    Optional<ProjectMember> findByProjectIdAndUserId(Long projectId, Long userId);
+    Optional<ProjectMember> findByProjectIdAndUserId(UUID projectId, UUID userId);
 
-    void deleteByProjectIdAndUserId(Long projectId, Long userId);
+    void deleteByProjectIdAndUserId(UUID projectId, UUID userId);
 }

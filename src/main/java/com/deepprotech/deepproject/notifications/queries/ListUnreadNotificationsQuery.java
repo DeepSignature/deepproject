@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.notifications.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record ListUnreadNotificationsQuery(@NotNull Long userId) {}
+import java.util.UUID;
+
+public record ListUnreadNotificationsQuery(@NotNull UUID userId) {}

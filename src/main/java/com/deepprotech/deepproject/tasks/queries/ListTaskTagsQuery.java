@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.tasks.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record ListTaskTagsQuery(@NotNull Long taskId) {}
+import java.util.UUID;
+
+public record ListTaskTagsQuery(@NotNull UUID taskId) {}

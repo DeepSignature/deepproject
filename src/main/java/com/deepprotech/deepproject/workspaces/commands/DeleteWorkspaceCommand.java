@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.workspaces.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record DeleteWorkspaceCommand(@NotNull Long workspaceId) {}
+import java.util.UUID;
+
+public record DeleteWorkspaceCommand(@NotNull UUID workspaceId) {}

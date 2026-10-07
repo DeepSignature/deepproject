@@ -27,6 +27,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -59,7 +60,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('SYSTEM_ADMIN') or @authz.isSelf(#id)")
-    public ResponseEntity<UserResponse> get(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> get(@PathVariable UUID id) {
         User user = getUserQueryService.handle(new GetUserByIdQuery(id));
         return ResponseEntity.ok(UserResponse.from(user));
     }
@@ -74,14 +75,14 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SYSTEM_ADMIN') or @authz.isSelf(#id)")
-    public ResponseEntity<UserResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<UserResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
         User user = updateUserService.handle(new UpdateUserCommand(id, request.displayName()));
         return ResponseEntity.ok(UserResponse.from(user));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         deactivateUserService.handle(new DeactivateUserCommand(id));
         return ResponseEntity.noContent().build();
     }

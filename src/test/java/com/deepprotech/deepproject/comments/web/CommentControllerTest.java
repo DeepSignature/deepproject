@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -38,7 +39,11 @@ class CommentControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Comment comment = Comment.builder().id(1L).taskId(1L).authorId(2L).content("Nice!").build();
+    private static final UUID COMMENT_ID = UUID.fromString("a0000012-0000-0000-0000-000000000001");
+    private static final UUID TASK_ID = UUID.fromString("a0000009-0000-0000-0000-000000000001");
+    private static final UUID USER_ID_2 = UUID.fromString("a0000002-0000-0000-0000-000000000002");
+
+    private final Comment comment = Comment.builder().id(COMMENT_ID).taskId(TASK_ID).authorId(USER_ID_2).content("Nice!").build();
 
     @BeforeEach
     void setUp() {
@@ -50,15 +55,15 @@ class CommentControllerTest {
     @Test
     void listReturnsComments() throws Exception {
         when(getCommentQueryService.handle(any(ListCommentsByTaskQuery.class))).thenReturn(List.of(comment));
-        mockMvc.perform(get("/api/tasks/{taskId}/comments", 1L))
+        mockMvc.perform(get("/api/tasks/{taskId}/comments", TASK_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(COMMENT_ID.toString()));
     }
 
     @Test
     void getReturnsComment() throws Exception {
         when(getCommentQueryService.handle(any(GetCommentByIdQuery.class))).thenReturn(comment);
-        mockMvc.perform(get("/api/tasks/{taskId}/comments/{id}", 1L, 1L))
+        mockMvc.perform(get("/api/tasks/{taskId}/comments/{id}", TASK_ID, COMMENT_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").value("Nice!"));
     }
@@ -66,7 +71,7 @@ class CommentControllerTest {
     @Test
     void createReturnsCreated() throws Exception {
         when(createCommentService.handle(any())).thenReturn(comment);
-        mockMvc.perform(post("/api/tasks/{taskId}/comments?authorId=2", 1L)
+        mockMvc.perform(post("/api/tasks/{taskId}/comments?authorId=" + USER_ID_2, TASK_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"Nice!\"}"))
                 .andExpect(status().isCreated())
@@ -75,9 +80,9 @@ class CommentControllerTest {
 
     @Test
     void updateReturnsOk() throws Exception {
-        Comment updated = Comment.builder().id(1L).taskId(1L).authorId(2L).content("Updated").build();
+        Comment updated = Comment.builder().id(COMMENT_ID).taskId(TASK_ID).authorId(USER_ID_2).content("Updated").build();
         when(updateCommentService.handle(any())).thenReturn(updated);
-        mockMvc.perform(put("/api/tasks/{taskId}/comments/{id}", 1L, 1L)
+        mockMvc.perform(put("/api/tasks/{taskId}/comments/{id}", TASK_ID, COMMENT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"content\":\"Updated\"}"))
                 .andExpect(status().isOk())
@@ -86,7 +91,7 @@ class CommentControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/tasks/{taskId}/comments/{id}", 1L, 1L))
+        mockMvc.perform(delete("/api/tasks/{taskId}/comments/{id}", TASK_ID, COMMENT_ID))
                 .andExpect(status().isNoContent());
         verify(deleteCommentService).handle(any());
     }

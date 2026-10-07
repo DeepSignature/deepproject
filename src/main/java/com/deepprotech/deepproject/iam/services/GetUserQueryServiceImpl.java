@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -50,7 +51,7 @@ public class GetUserQueryServiceImpl implements GetUserQueryService {
     }
 
     @Override
-    public List<Role> getUserRoles(Long userId) {
+    public List<Role> getUserRoles(UUID userId) {
         return roleRepository.findRolesByUserId(userId);
     }
 }

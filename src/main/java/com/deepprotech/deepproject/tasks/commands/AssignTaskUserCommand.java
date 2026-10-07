@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.tasks.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record AssignTaskUserCommand(@NotNull Long taskId, @NotNull Long userId) {}
+import java.util.UUID;
+
+public record AssignTaskUserCommand(@NotNull UUID taskId, @NotNull UUID userId) {}

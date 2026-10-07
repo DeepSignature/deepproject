@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.comments.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record DeleteCommentCommand(@NotNull Long commentId) {}
+import java.util.UUID;
+
+public record DeleteCommentCommand(@NotNull UUID commentId) {}

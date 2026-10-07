@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -32,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+
     @Mock CreateUserService createUserService;
     @Mock UpdateUserService updateUserService;
     @Mock DeactivateUserService deactivateUserService;
@@ -40,7 +43,7 @@ class UserControllerTest {
 
     private MockMvc mockMvc;
 
-    private final User user = User.builder().id(1L).identityId("id-1").username("testuser").email("test@test.com").displayName("Test").active(true).build();
+    private final User user = User.builder().id(USER_ID).identityId("id-1").username("testuser").email("test@test.com").displayName("Test").active(true).build();
 
     @BeforeEach
     void setUp() {
@@ -52,9 +55,9 @@ class UserControllerTest {
     void getReturnsUser() throws Exception {
         when(getUserQueryService.handle(any(GetUserByIdQuery.class))).thenReturn(user);
 
-        mockMvc.perform(get("/api/users/{id}", 1L))
+        mockMvc.perform(get("/api/users/{id}", USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.username").value("testuser"));
     }
 
@@ -64,7 +67,7 @@ class UserControllerTest {
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(USER_ID.toString()));
     }
 
     @Test
@@ -76,15 +79,15 @@ class UserControllerTest {
                         .content("""
                             {"identityId":"id-1","username":"testuser","email":"test@test.com","displayName":"Test"}"""))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.id").value(USER_ID.toString()));
     }
 
     @Test
     void updateReturnsOk() throws Exception {
-        User updated = User.builder().id(1L).identityId("id-1").username("testuser").email("test@test.com").displayName("Updated").active(true).build();
+        User updated = User.builder().id(USER_ID).identityId("id-1").username("testuser").email("test@test.com").displayName("Updated").active(true).build();
         when(updateUserService.handle(any())).thenReturn(updated);
 
-        mockMvc.perform(put("/api/users/{id}", 1L)
+        mockMvc.perform(put("/api/users/{id}", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"displayName\":\"Updated\"}"))
                 .andExpect(status().isOk())
@@ -93,7 +96,7 @@ class UserControllerTest {
 
     @Test
     void deactivateReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/users/{id}", 1L))
+        mockMvc.perform(delete("/api/users/{id}", USER_ID))
                 .andExpect(status().isNoContent());
         verify(deactivateUserService).handle(any());
     }

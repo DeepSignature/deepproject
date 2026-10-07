@@ -3,4 +3,6 @@ package com.deepprotech.deepproject.comments.commands;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record UpdateCommentCommand(@NotNull Long commentId, @NotBlank String content) {}
+import java.util.UUID;
+
+public record UpdateCommentCommand(@NotNull UUID commentId, @NotBlank String content) {}

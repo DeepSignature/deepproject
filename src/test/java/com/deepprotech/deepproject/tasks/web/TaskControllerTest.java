@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -40,6 +41,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class TaskControllerTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID TASK_ID = UUID.fromString("a0000009-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+
     @Mock CreateTaskService createTaskService;
     @Mock UpdateTaskService updateTaskService;
     @Mock ChangeTaskStatusService changeTaskStatusService;
@@ -50,7 +55,7 @@ class TaskControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Task task = Task.builder().id(1L).projectId(1L).title("Task").description("Desc").status("TODO").priority("HIGH").taskType("TASK").build();
+    private final Task task = Task.builder().id(TASK_ID).projectId(PROJECT_ID).title("Task").description("Desc").status("TODO").priority("HIGH").taskType("TASK").build();
 
     @BeforeEach
     void setUp() {
@@ -62,15 +67,15 @@ class TaskControllerTest {
     @Test
     void listReturnsTasks() throws Exception {
         when(getTaskQueryService.handle(any(ListTasksByProjectQuery.class))).thenReturn(List.of(task));
-        mockMvc.perform(get("/api/projects/{projectId}/tasks", 1L))
+        mockMvc.perform(get("/api/projects/{projectId}/tasks", PROJECT_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(TASK_ID.toString()));
     }
 
     @Test
     void getReturnsTask() throws Exception {
         when(getTaskQueryService.handle(any(GetTaskByIdQuery.class))).thenReturn(task);
-        mockMvc.perform(get("/api/projects/{projectId}/tasks/{id}", 1L, 1L))
+        mockMvc.perform(get("/api/projects/{projectId}/tasks/{id}", PROJECT_ID, TASK_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Task"));
     }
@@ -78,15 +83,15 @@ class TaskControllerTest {
     @Test
     void subtasksReturnsList() throws Exception {
         when(getTaskQueryService.handle(any(ListSubtasksQuery.class))).thenReturn(List.of(task));
-        mockMvc.perform(get("/api/projects/{projectId}/tasks/{id}/subtasks", 1L, 1L))
+        mockMvc.perform(get("/api/projects/{projectId}/tasks/{id}/subtasks", PROJECT_ID, TASK_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(TASK_ID.toString()));
     }
 
     @Test
     void createReturnsCreated() throws Exception {
         when(createTaskService.handle(any())).thenReturn(task);
-        mockMvc.perform(post("/api/projects/{projectId}/tasks", 1L)
+        mockMvc.perform(post("/api/projects/{projectId}/tasks", PROJECT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Task\",\"description\":\"Desc\",\"priority\":\"HIGH\",\"taskType\":\"TASK\"}"))
                 .andExpect(status().isCreated())
@@ -95,9 +100,9 @@ class TaskControllerTest {
 
     @Test
     void updateReturnsOk() throws Exception {
-        Task updated = Task.builder().id(1L).projectId(1L).title("Updated").description("Desc").status("TODO").priority("LOW").taskType("TASK").build();
+        Task updated = Task.builder().id(TASK_ID).projectId(PROJECT_ID).title("Updated").description("Desc").status("TODO").priority("LOW").taskType("TASK").build();
         when(updateTaskService.handle(any())).thenReturn(updated);
-        mockMvc.perform(put("/api/projects/{projectId}/tasks/{id}", 1L, 1L)
+        mockMvc.perform(put("/api/projects/{projectId}/tasks/{id}", PROJECT_ID, TASK_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Updated\",\"description\":\"Desc\",\"priority\":\"LOW\"}"))
                 .andExpect(status().isOk())
@@ -106,44 +111,44 @@ class TaskControllerTest {
 
     @Test
     void updateStatusReturnsOk() throws Exception {
-        Task updated = Task.builder().id(1L).projectId(1L).title("Task").description("Desc").status("IN_PROGRESS").priority("HIGH").taskType("TASK").build();
+        Task updated = Task.builder().id(TASK_ID).projectId(PROJECT_ID).title("Task").description("Desc").status("IN_PROGRESS").priority("HIGH").taskType("TASK").build();
         when(changeTaskStatusService.handle(any())).thenReturn(updated);
-        mockMvc.perform(patch("/api/projects/{projectId}/tasks/{id}/status?status=IN_PROGRESS", 1L, 1L))
+        mockMvc.perform(patch("/api/projects/{projectId}/tasks/{id}/status?status=IN_PROGRESS", PROJECT_ID, TASK_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
     }
 
     @Test
     void assignReturnsOk() throws Exception {
-        mockMvc.perform(post("/api/projects/{projectId}/tasks/{id}/assign?userId=2", 1L, 1L))
+        mockMvc.perform(post("/api/projects/{projectId}/tasks/{id}/assign?userId={userId}", PROJECT_ID, TASK_ID, USER_ID))
                 .andExpect(status().isOk());
         verify(assignTaskService).handle(any(AssignTaskUserCommand.class));
     }
 
     @Test
     void unassignReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}/assign/{userId}", 1L, 1L, 2L))
+        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}/assign/{userId}", PROJECT_ID, TASK_ID, USER_ID))
                 .andExpect(status().isNoContent());
         verify(assignTaskService).handle(any(UnassignTaskUserCommand.class));
     }
 
     @Test
     void addTagReturnsOk() throws Exception {
-        mockMvc.perform(post("/api/projects/{projectId}/tasks/{id}/tags?tagName=urgent", 1L, 1L))
+        mockMvc.perform(post("/api/projects/{projectId}/tasks/{id}/tags?tagName=urgent", PROJECT_ID, TASK_ID))
                 .andExpect(status().isOk());
         verify(manageTaskTagService).handle(any(AddTaskTagCommand.class));
     }
 
     @Test
     void removeTagReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}/tags/{tagName}", 1L, 1L, "urgent"))
+        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}/tags/{tagName}", PROJECT_ID, TASK_ID, "urgent"))
                 .andExpect(status().isNoContent());
         verify(manageTaskTagService).handle(any(RemoveTaskTagCommand.class));
     }
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}", 1L, 1L))
+        mockMvc.perform(delete("/api/projects/{projectId}/tasks/{id}", PROJECT_ID, TASK_ID))
                 .andExpect(status().isNoContent());
         verify(deleteTaskService).handle(any());
     }

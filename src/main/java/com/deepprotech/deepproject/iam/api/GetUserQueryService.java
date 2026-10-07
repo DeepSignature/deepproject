@@ -8,11 +8,12 @@ import com.deepprotech.deepproject.iam.queries.GetUserByUsernameQuery;
 import com.deepprotech.deepproject.iam.queries.ListUsersQuery;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface GetUserQueryService {
     User handle(GetUserByIdQuery query);
     User handle(GetUserByUsernameQuery query);
     User handle(GetUserByIdentityIdQuery query);
     List<User> handle(ListUsersQuery query);
-    List<Role> getUserRoles(Long userId);
+    List<Role> getUserRoles(UUID userId);
 }

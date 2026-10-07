@@ -19,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/workspaces/{workspaceId}/projects")
@@ -33,7 +34,7 @@ public class ProjectController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_READ')")
-    public ResponseEntity<List<ProjectResponse>> list(@PathVariable Long workspaceId) {
+    public ResponseEntity<List<ProjectResponse>> list(@PathVariable UUID workspaceId) {
         List<ProjectResponse> list = getProjectQueryService.handle(new ListProjectsByWorkspaceQuery(workspaceId)).stream()
                 .map(ProjectResponse::from)
                 .toList();
@@ -42,14 +43,14 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_READ')")
-    public ResponseEntity<ProjectResponse> get(@PathVariable Long id) {
+    public ResponseEntity<ProjectResponse> get(@PathVariable UUID id) {
         Project p = getProjectQueryService.handle(new GetProjectByIdQuery(id));
         return ResponseEntity.ok(ProjectResponse.from(p));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_CREATE')")
-    public ResponseEntity<ProjectResponse> create(@PathVariable Long workspaceId,
+    public ResponseEntity<ProjectResponse> create(@PathVariable UUID workspaceId,
                                                   @Valid @RequestBody CreateProjectRequest request) {
         Project p = createProjectService.handle(new CreateProjectCommand(workspaceId, request.name(), request.description()));
         return ResponseEntity.status(HttpStatus.CREATED).body(ProjectResponse.from(p));
@@ -57,7 +58,7 @@ public class ProjectController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_UPDATE')")
-    public ResponseEntity<ProjectResponse> update(@PathVariable Long id,
+    public ResponseEntity<ProjectResponse> update(@PathVariable UUID id,
                                                   @Valid @RequestBody UpdateProjectRequest request) {
         Project p = updateProjectService.handle(new UpdateProjectCommand(id, request.name(), request.description()));
         return ResponseEntity.ok(ProjectResponse.from(p));
@@ -65,14 +66,14 @@ public class ProjectController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_UPDATE')")
-    public ResponseEntity<ProjectResponse> updateStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<ProjectResponse> updateStatus(@PathVariable UUID id, @RequestParam String status) {
         Project p = changeProjectStatusService.handle(new ChangeProjectStatusCommand(id, status));
         return ResponseEntity.ok(ProjectResponse.from(p));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_PROJECT_DELETE')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deleteProjectService.handle(new DeleteProjectCommand(id));
         return ResponseEntity.noContent().build();
     }

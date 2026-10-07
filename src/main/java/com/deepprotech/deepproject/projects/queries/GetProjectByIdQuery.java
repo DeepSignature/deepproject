@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.projects.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record GetProjectByIdQuery(@NotNull Long projectId) {}
+import java.util.UUID;
+
+public record GetProjectByIdQuery(@NotNull UUID projectId) {}

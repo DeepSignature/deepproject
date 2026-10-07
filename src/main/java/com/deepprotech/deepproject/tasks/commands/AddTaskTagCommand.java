@@ -3,4 +3,6 @@ package com.deepprotech.deepproject.tasks.commands;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record AddTaskTagCommand(@NotNull Long taskId, @NotBlank String tagName) {}
+import java.util.UUID;
+
+public record AddTaskTagCommand(@NotNull UUID taskId, @NotBlank String tagName) {}

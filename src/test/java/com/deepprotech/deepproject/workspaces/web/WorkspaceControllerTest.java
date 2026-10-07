@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -31,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class WorkspaceControllerTest {
 
+    private static final UUID WS_ID = UUID.fromString("a0000006-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID ORG_ID = UUID.fromString("a0000003-0000-0000-0000-000000000001");
+
     @Mock CreateWorkspaceService createWorkspaceService;
     @Mock UpdateWorkspaceService updateWorkspaceService;
     @Mock DeleteWorkspaceService deleteWorkspaceService;
@@ -38,7 +43,7 @@ class WorkspaceControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Workspace ws = Workspace.builder().id(1L).name("WS").slug("ws").description("D").ownerId(1L).organizationId(10L).build();
+    private final Workspace ws = Workspace.builder().id(WS_ID).name("WS").slug("ws").description("D").ownerId(USER_ID).organizationId(ORG_ID).build();
 
     @BeforeEach
     void setUp() {
@@ -50,15 +55,15 @@ class WorkspaceControllerTest {
     @Test
     void listReturnsWorkspaces() throws Exception {
         when(getWorkspaceQueryService.handle(any(ListUserWorkspacesQuery.class))).thenReturn(List.of(ws));
-        mockMvc.perform(get("/api/workspaces?userId=1"))
+        mockMvc.perform(get("/api/workspaces?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(WS_ID.toString()));
     }
 
     @Test
     void getReturnsWorkspace() throws Exception {
         when(getWorkspaceQueryService.handle(any(GetWorkspaceByIdQuery.class))).thenReturn(ws);
-        mockMvc.perform(get("/api/workspaces/{id}", 1L))
+        mockMvc.perform(get("/api/workspaces/{id}", WS_ID.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("WS"));
     }
@@ -66,18 +71,18 @@ class WorkspaceControllerTest {
     @Test
     void createReturnsCreated() throws Exception {
         when(createWorkspaceService.handle(any())).thenReturn(ws);
-        mockMvc.perform(post("/api/workspaces?ownerId=1")
+        mockMvc.perform(post("/api/workspaces?ownerId=" + USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"WS\",\"slug\":\"ws\",\"description\":\"D\",\"organizationId\":10}"))
+                        .content("{\"name\":\"WS\",\"slug\":\"ws\",\"description\":\"D\",\"organizationId\":\"" + ORG_ID + "\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("WS"));
     }
 
     @Test
     void updateReturnsOk() throws Exception {
-        Workspace updated = Workspace.builder().id(1L).name("Updated").slug("ws").description("D").ownerId(1L).build();
+        Workspace updated = Workspace.builder().id(WS_ID).name("Updated").slug("ws").description("D").ownerId(USER_ID).build();
         when(updateWorkspaceService.handle(any())).thenReturn(updated);
-        mockMvc.perform(put("/api/workspaces/{id}", 1L)
+        mockMvc.perform(put("/api/workspaces/{id}", WS_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Updated\",\"description\":\"D\"}"))
                 .andExpect(status().isOk())
@@ -86,7 +91,7 @@ class WorkspaceControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/workspaces/{id}", 1L))
+        mockMvc.perform(delete("/api/workspaces/{id}", WS_ID.toString()))
                 .andExpect(status().isNoContent());
         verify(deleteWorkspaceService).handle(any());
     }

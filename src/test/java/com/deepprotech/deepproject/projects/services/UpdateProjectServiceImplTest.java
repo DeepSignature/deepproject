@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,14 +22,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UpdateProjectServiceImplTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("a0000001-0000-0000-0000-0000000999");
+
     @Mock ProjectRepository projectRepository;
     @InjectMocks UpdateProjectServiceImpl service;
 
     @Test
     void updatesProjectReturnsIt() {
-        UpdateProjectCommand cmd = new UpdateProjectCommand(10L, "New Proj", "New Desc");
-        Project p = Project.builder().id(10L).name("Old Proj").description("Old Desc").build();
-        when(projectRepository.findById(10L)).thenReturn(Optional.of(p));
+        UpdateProjectCommand cmd = new UpdateProjectCommand(PROJECT_ID, "New Proj", "New Desc");
+        Project p = Project.builder().id(PROJECT_ID).name("Old Proj").description("Old Desc").build();
+        when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(p));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Project result = service.handle(cmd);
@@ -40,8 +44,8 @@ class UpdateProjectServiceImplTest {
 
     @Test
     void throwsWhenNotFound() {
-        UpdateProjectCommand cmd = new UpdateProjectCommand(999L, "New Proj", "New Desc");
-        when(projectRepository.findById(999L)).thenReturn(Optional.empty());
+        UpdateProjectCommand cmd = new UpdateProjectCommand(UNKNOWN_ID, "New Proj", "New Desc");
+        when(projectRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

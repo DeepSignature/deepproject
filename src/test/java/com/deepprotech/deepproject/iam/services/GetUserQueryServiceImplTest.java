@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,26 +27,30 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetUserQueryServiceImplTest {
 
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID ROLE_ID = UUID.fromString("a0000004-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock UserRepository userRepository;
     @Mock RoleRepository roleRepository;
     @InjectMocks GetUserQueryServiceImpl service;
 
     @Test
     void getByIdReturnsUser() {
-        User user = User.builder().id(1L).username("john").build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        assertThat(service.handle(new GetUserByIdQuery(1L))).isEqualTo(user);
+        User user = User.builder().id(USER_ID).username("john").build();
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        assertThat(service.handle(new GetUserByIdQuery(USER_ID))).isEqualTo(user);
     }
 
     @Test
     void getByIdThrowsWhenNotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.handle(new GetUserByIdQuery(999L))).isInstanceOf(ResourceNotFoundException.class);
+        when(userRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(new GetUserByIdQuery(UNKNOWN_ID))).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void getByUsernameReturnsUser() {
-        User user = User.builder().id(1L).username("john").build();
+        User user = User.builder().id(USER_ID).username("john").build();
         when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
         assertThat(service.handle(new GetUserByUsernameQuery("john"))).isEqualTo(user);
     }
@@ -58,7 +63,7 @@ class GetUserQueryServiceImplTest {
 
     @Test
     void getByIdentityIdReturnsUser() {
-        User user = User.builder().id(1L).identityId("sub-1").build();
+        User user = User.builder().id(USER_ID).identityId("sub-1").build();
         when(userRepository.findByIdentityId("sub-1")).thenReturn(Optional.of(user));
         assertThat(service.handle(new GetUserByIdentityIdQuery("sub-1"))).isEqualTo(user);
     }
@@ -71,15 +76,15 @@ class GetUserQueryServiceImplTest {
 
     @Test
     void listUsersReturnsAll() {
-        User user = User.builder().id(1L).username("john").build();
+        User user = User.builder().id(USER_ID).username("john").build();
         when(userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))).thenReturn(List.of(user));
         assertThat(service.handle(new ListUsersQuery())).containsExactly(user);
     }
 
     @Test
     void getUserRolesReturnsRoles() {
-        Role role = Role.builder().id(1L).name("ROLE_ADMIN").build();
-        when(roleRepository.findRolesByUserId(1L)).thenReturn(List.of(role));
-        assertThat(service.getUserRoles(1L)).containsExactly(role);
+        Role role = Role.builder().id(ROLE_ID).name("ROLE_ADMIN").build();
+        when(roleRepository.findRolesByUserId(USER_ID)).thenReturn(List.of(role));
+        assertThat(service.getUserRoles(USER_ID)).containsExactly(role);
     }
 }

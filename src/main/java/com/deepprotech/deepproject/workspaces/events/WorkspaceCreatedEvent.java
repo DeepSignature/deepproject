@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.workspaces.events;
 
 import java.time.Instant;
+import java.util.UUID;
 
-public record WorkspaceCreatedEvent(Long workspaceId, String name, Long ownerId, Instant occurredAt) {}
+public record WorkspaceCreatedEvent(UUID workspaceId, String name, UUID ownerId, Instant occurredAt) {}

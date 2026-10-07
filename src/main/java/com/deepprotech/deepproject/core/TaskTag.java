@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -19,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 public class TaskTag extends BaseEntity {
 
     @Column(name = "task_id", nullable = false)
-    private Long taskId;
+    private UUID taskId;
 
     @Column(name = "tag_name", nullable = false, length = 100)
     private String tagName;

@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks/{taskId}/comments")
@@ -34,7 +35,7 @@ public class CommentController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_READ')")
-    public ResponseEntity<List<CommentResponse>> list(@PathVariable Long taskId) {
+    public ResponseEntity<List<CommentResponse>> list(@PathVariable UUID taskId) {
         List<CommentResponse> list = getCommentQueryService.handle(new ListCommentsByTaskQuery(taskId))
                 .stream()
                 .map(CommentResponse::from)
@@ -44,15 +45,15 @@ public class CommentController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_READ')")
-    public ResponseEntity<CommentResponse> get(@PathVariable Long id) {
+    public ResponseEntity<CommentResponse> get(@PathVariable UUID id) {
         Comment c = getCommentQueryService.handle(new GetCommentByIdQuery(id));
         return ResponseEntity.ok(CommentResponse.from(c));
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_CREATE')")
-    public ResponseEntity<CommentResponse> create(@PathVariable Long taskId,
-                                                  @RequestParam Long authorId,
+    public ResponseEntity<CommentResponse> create(@PathVariable UUID taskId,
+                                                  @RequestParam UUID authorId,
                                                   @Valid @RequestBody CreateCommentRequest request) {
         Comment c = createCommentService.handle(new CreateCommentCommand(taskId, authorId, request.content()));
         return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.from(c));
@@ -60,7 +61,7 @@ public class CommentController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_UPDATE_OWN')")
-    public ResponseEntity<CommentResponse> update(@PathVariable Long id,
+    public ResponseEntity<CommentResponse> update(@PathVariable UUID id,
                                                   @Valid @RequestBody UpdateCommentRequest request) {
         Comment c = updateCommentService.handle(new UpdateCommentCommand(id, request.content()));
         return ResponseEntity.ok(CommentResponse.from(c));
@@ -68,7 +69,7 @@ public class CommentController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_DELETE_OWN') or hasAuthority('PERMISSION_COMMENT_DELETE_ANY')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deleteCommentService.handle(new DeleteCommentCommand(id));
         return ResponseEntity.noContent().build();
     }

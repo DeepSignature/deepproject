@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -21,17 +22,20 @@ class GetNotificationQueryServiceImplTest {
     @Mock NotificationRepository notificationRepository;
     @InjectMocks GetNotificationQueryServiceImpl service;
 
+    private static final UUID NOTIF_ID = UUID.fromString("a0000013-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+
     @Test
     void listUserNotificationsReturnsNotifications() {
-        Notification n = Notification.builder().id(1L).userId(10L).build();
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(10L)).thenReturn(List.of(n));
-        assertThat(service.handle(new ListUserNotificationsQuery(10L))).containsExactly(n);
+        Notification n = Notification.builder().id(NOTIF_ID).userId(USER_ID).build();
+        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(USER_ID)).thenReturn(List.of(n));
+        assertThat(service.handle(new ListUserNotificationsQuery(USER_ID))).containsExactly(n);
     }
 
     @Test
     void listUnreadReturnsNotifications() {
-        Notification n = Notification.builder().id(1L).userId(10L).status("UNREAD").build();
-        when(notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(10L, "UNREAD")).thenReturn(List.of(n));
-        assertThat(service.handle(new ListUnreadNotificationsQuery(10L))).containsExactly(n);
+        Notification n = Notification.builder().id(NOTIF_ID).userId(USER_ID).status("UNREAD").build();
+        when(notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(USER_ID, "UNREAD")).thenReturn(List.of(n));
+        assertThat(service.handle(new ListUnreadNotificationsQuery(USER_ID))).containsExactly(n);
     }
 }

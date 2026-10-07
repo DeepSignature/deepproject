@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,8 +22,8 @@ import java.time.Instant;
 public abstract class BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

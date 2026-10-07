@@ -10,6 +10,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -20,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 public class Notification extends BaseEntity {
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private UUID userId;
 
     @Column(name = "title", nullable = false, length = 300)
     private String title;
@@ -40,5 +42,5 @@ public class Notification extends BaseEntity {
     private String entityType;
 
     @Column(name = "entity_id")
-    private Long entityId;
+    private UUID entityId;
 }

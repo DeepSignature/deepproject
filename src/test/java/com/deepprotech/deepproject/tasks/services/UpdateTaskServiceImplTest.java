@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,14 +22,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UpdateTaskServiceImplTest {
 
+    private static final UUID TASK_ID = UUID.fromString("a0000009-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock TaskRepository taskRepository;
     @InjectMocks UpdateTaskServiceImpl service;
 
     @Test
     void updatesTaskReturnsIt() {
-        UpdateTaskCommand cmd = new UpdateTaskCommand(100L, "New Title", "New Desc", "CRITICAL");
-        Task task = Task.builder().id(100L).title("Old Title").description("Old Desc").priority("LOW").build();
-        when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
+        UpdateTaskCommand cmd = new UpdateTaskCommand(TASK_ID, "New Title", "New Desc", "CRITICAL");
+        Task task = Task.builder().id(TASK_ID).title("Old Title").description("Old Desc").priority("LOW").build();
+        when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Task result = service.handle(cmd);
@@ -41,8 +45,8 @@ class UpdateTaskServiceImplTest {
 
     @Test
     void throwsWhenNotFound() {
-        UpdateTaskCommand cmd = new UpdateTaskCommand(999L, "Title", "Desc", "LOW");
-        when(taskRepository.findById(999L)).thenReturn(Optional.empty());
+        UpdateTaskCommand cmd = new UpdateTaskCommand(UNKNOWN_ID, "Title", "Desc", "LOW");
+        when(taskRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

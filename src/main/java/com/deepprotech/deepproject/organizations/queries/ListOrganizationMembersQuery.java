@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.organizations.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record ListOrganizationMembersQuery(@NotNull Long organizationId) {}
+import java.util.UUID;
+
+public record ListOrganizationMembersQuery(@NotNull UUID organizationId) {}

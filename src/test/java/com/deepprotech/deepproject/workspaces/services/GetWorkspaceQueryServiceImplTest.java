@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,26 +26,31 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetWorkspaceQueryServiceImplTest {
 
+    private static final UUID WS_ID = UUID.fromString("a0000006-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID MEMBER_ID = UUID.fromString("a0000007-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock WorkspaceRepository workspaceRepository;
     @Mock WorkspaceMemberRepository workspaceMemberRepository;
     @InjectMocks GetWorkspaceQueryServiceImpl service;
 
     @Test
     void getByIdReturnsWorkspace() {
-        Workspace ws = Workspace.builder().id(1L).name("WS").build();
-        when(workspaceRepository.findById(1L)).thenReturn(Optional.of(ws));
-        assertThat(service.handle(new GetWorkspaceByIdQuery(1L))).isEqualTo(ws);
+        Workspace ws = Workspace.builder().id(WS_ID).name("WS").build();
+        when(workspaceRepository.findById(WS_ID)).thenReturn(Optional.of(ws));
+        assertThat(service.handle(new GetWorkspaceByIdQuery(WS_ID))).isEqualTo(ws);
     }
 
     @Test
     void getByIdThrowsWhenNotFound() {
-        when(workspaceRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.handle(new GetWorkspaceByIdQuery(999L))).isInstanceOf(ResourceNotFoundException.class);
+        when(workspaceRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(new GetWorkspaceByIdQuery(UNKNOWN_ID))).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void getBySlugReturnsWorkspace() {
-        Workspace ws = Workspace.builder().id(1L).slug("my-ws").build();
+        Workspace ws = Workspace.builder().id(WS_ID).slug("my-ws").build();
         when(workspaceRepository.findBySlug("my-ws")).thenReturn(Optional.of(ws));
         assertThat(service.handle(new GetWorkspaceBySlugQuery("my-ws"))).isEqualTo(ws);
     }
@@ -57,15 +63,15 @@ class GetWorkspaceQueryServiceImplTest {
 
     @Test
     void listUserWorkspacesReturnsWorkspaces() {
-        Workspace ws = Workspace.builder().id(1L).build();
-        when(workspaceRepository.findWorkspacesByUserId(1L)).thenReturn(List.of(ws));
-        assertThat(service.handle(new ListUserWorkspacesQuery(1L))).containsExactly(ws);
+        Workspace ws = Workspace.builder().id(WS_ID).build();
+        when(workspaceRepository.findWorkspacesByUserId(USER_ID)).thenReturn(List.of(ws));
+        assertThat(service.handle(new ListUserWorkspacesQuery(USER_ID))).containsExactly(ws);
     }
 
     @Test
     void listWorkspaceMembersReturnsMembers() {
-        WorkspaceMember member = WorkspaceMember.builder().id(1L).build();
-        when(workspaceMemberRepository.findByWorkspaceId(1L)).thenReturn(List.of(member));
-        assertThat(service.handle(new ListWorkspaceMembersQuery(1L))).containsExactly(member);
+        WorkspaceMember member = WorkspaceMember.builder().id(MEMBER_ID).build();
+        when(workspaceMemberRepository.findByWorkspaceId(WS_ID)).thenReturn(List.of(member));
+        assertThat(service.handle(new ListWorkspaceMembersQuery(WS_ID))).containsExactly(member);
     }
 }

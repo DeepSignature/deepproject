@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.organizations.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record DeleteOrganizationCommand(@NotNull Long organizationId) {}
+import java.util.UUID;
+
+public record DeleteOrganizationCommand(@NotNull UUID organizationId) {}

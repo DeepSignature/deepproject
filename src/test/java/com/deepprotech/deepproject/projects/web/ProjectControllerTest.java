@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -33,6 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class ProjectControllerTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID WS_ID = UUID.fromString("a0000006-0000-0000-0000-000000000001");
+
     @Mock CreateProjectService createProjectService;
     @Mock UpdateProjectService updateProjectService;
     @Mock ChangeProjectStatusService changeProjectStatusService;
@@ -41,7 +45,7 @@ class ProjectControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Project project = Project.builder().id(1L).workspaceId(1L).name("Project").description("Desc").status("ACTIVE").build();
+    private final Project project = Project.builder().id(PROJECT_ID).workspaceId(WS_ID).name("Project").description("Desc").status("ACTIVE").build();
 
     @BeforeEach
     void setUp() {
@@ -53,15 +57,15 @@ class ProjectControllerTest {
     @Test
     void listReturnsProjects() throws Exception {
         when(getProjectQueryService.handle(any(ListProjectsByWorkspaceQuery.class))).thenReturn(List.of(project));
-        mockMvc.perform(get("/api/workspaces/{workspaceId}/projects", 1L))
+        mockMvc.perform(get("/api/workspaces/{workspaceId}/projects", WS_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(PROJECT_ID.toString()));
     }
 
     @Test
     void getReturnsProject() throws Exception {
         when(getProjectQueryService.handle(any(GetProjectByIdQuery.class))).thenReturn(project);
-        mockMvc.perform(get("/api/workspaces/{workspaceId}/projects/{id}", 1L, 1L))
+        mockMvc.perform(get("/api/workspaces/{workspaceId}/projects/{id}", WS_ID, PROJECT_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Project"));
     }
@@ -69,7 +73,7 @@ class ProjectControllerTest {
     @Test
     void createReturnsCreated() throws Exception {
         when(createProjectService.handle(any())).thenReturn(project);
-        mockMvc.perform(post("/api/workspaces/{workspaceId}/projects", 1L)
+        mockMvc.perform(post("/api/workspaces/{workspaceId}/projects", WS_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Project\",\"description\":\"Desc\"}"))
                 .andExpect(status().isCreated())
@@ -78,9 +82,9 @@ class ProjectControllerTest {
 
     @Test
     void updateReturnsOk() throws Exception {
-        Project updated = Project.builder().id(1L).workspaceId(1L).name("Updated").description("Desc").status("ACTIVE").build();
+        Project updated = Project.builder().id(PROJECT_ID).workspaceId(WS_ID).name("Updated").description("Desc").status("ACTIVE").build();
         when(updateProjectService.handle(any())).thenReturn(updated);
-        mockMvc.perform(put("/api/workspaces/{workspaceId}/projects/{id}", 1L, 1L)
+        mockMvc.perform(put("/api/workspaces/{workspaceId}/projects/{id}", WS_ID, PROJECT_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Updated\",\"description\":\"Desc\"}"))
                 .andExpect(status().isOk())
@@ -89,16 +93,16 @@ class ProjectControllerTest {
 
     @Test
     void updateStatusReturnsOk() throws Exception {
-        Project updated = Project.builder().id(1L).workspaceId(1L).name("Project").description("Desc").status("COMPLETED").build();
+        Project updated = Project.builder().id(PROJECT_ID).workspaceId(WS_ID).name("Project").description("Desc").status("COMPLETED").build();
         when(changeProjectStatusService.handle(any())).thenReturn(updated);
-        mockMvc.perform(patch("/api/workspaces/{workspaceId}/projects/{id}/status?status=COMPLETED", 1L, 1L))
+        mockMvc.perform(patch("/api/workspaces/{workspaceId}/projects/{id}/status?status=COMPLETED", WS_ID, PROJECT_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"));
     }
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/workspaces/{workspaceId}/projects/{id}", 1L, 1L))
+        mockMvc.perform(delete("/api/workspaces/{workspaceId}/projects/{id}", WS_ID, PROJECT_ID))
                 .andExpect(status().isNoContent());
         verify(deleteProjectService).handle(any());
     }

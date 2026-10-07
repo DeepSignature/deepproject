@@ -3,4 +3,6 @@ package com.deepprotech.deepproject.tasks.commands;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record ChangeTaskStatusCommand(@NotNull Long taskId, @NotBlank String status) {}
+import java.util.UUID;
+
+public record ChangeTaskStatusCommand(@NotNull UUID taskId, @NotBlank String status) {}

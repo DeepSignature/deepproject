@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -33,7 +34,10 @@ class NotificationControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Notification notif = Notification.builder().id(1L).userId(1L).title("T").message("M").notificationType("INFO").status("UNREAD").build();
+    private static final UUID NOTIF_ID = UUID.fromString("a0000013-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+
+    private final Notification notif = Notification.builder().id(NOTIF_ID).userId(USER_ID).title("T").message("M").notificationType("INFO").status("UNREAD").build();
 
     @BeforeEach
     void setUp() {
@@ -44,29 +48,29 @@ class NotificationControllerTest {
     @Test
     void listReturnsNotifications() throws Exception {
         when(getNotificationQueryService.handle(any(ListUserNotificationsQuery.class))).thenReturn(List.of(notif));
-        mockMvc.perform(get("/api/notifications?userId=1"))
+        mockMvc.perform(get("/api/notifications?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(NOTIF_ID.toString()));
     }
 
     @Test
     void unreadReturnsNotifications() throws Exception {
         when(getNotificationQueryService.handle(any(ListUnreadNotificationsQuery.class))).thenReturn(List.of(notif));
-        mockMvc.perform(get("/api/notifications/unread?userId=1"))
+        mockMvc.perform(get("/api/notifications/unread?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$[0].id").value(NOTIF_ID.toString()));
     }
 
     @Test
     void markAsReadReturnsOk() throws Exception {
-        mockMvc.perform(patch("/api/notifications/{id}/read", 1L))
+        mockMvc.perform(patch("/api/notifications/{id}/read", NOTIF_ID))
                 .andExpect(status().isOk());
         verify(manageNotificationStatusService).handle(any(MarkNotificationReadCommand.class));
     }
 
     @Test
     void markAllAsReadReturnsOk() throws Exception {
-        mockMvc.perform(patch("/api/notifications/read-all?userId=1"))
+        mockMvc.perform(patch("/api/notifications/read-all?userId=" + USER_ID))
                 .andExpect(status().isOk());
         verify(manageNotificationStatusService).handle(any(MarkAllNotificationsReadCommand.class));
     }

@@ -1,10 +1,11 @@
 package com.deepprotech.deepproject.iam.dto;
 
 import java.util.List;
+import java.util.UUID;
 
 public record UserProfileResponse(
         String identityId,
-        Long userId,
+        UUID userId,
         String username,
         String email,
         String displayName,
@@ -13,7 +14,7 @@ public record UserProfileResponse(
         List<OrganizationMembership> organizations
 ) {
     public record OrganizationMembership(
-            Long organizationId,
+            UUID organizationId,
             String identifier,
             String name,
             String role,

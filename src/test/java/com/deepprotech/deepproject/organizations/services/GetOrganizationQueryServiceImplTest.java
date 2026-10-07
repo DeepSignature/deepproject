@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,26 +26,31 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetOrganizationQueryServiceImplTest {
 
+    private static final UUID ORG_ID = UUID.fromString("a0000003-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID MEMBER_ID = UUID.fromString("a0000005-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock OrganizationRepository organizationRepository;
     @Mock OrganizationMemberRepository organizationMemberRepository;
     @InjectMocks GetOrganizationQueryServiceImpl service;
 
     @Test
     void getByIdReturnsOrg() {
-        Organization org = Organization.builder().id(10L).name("Acme").build();
-        when(organizationRepository.findById(10L)).thenReturn(Optional.of(org));
-        assertThat(service.handle(new GetOrganizationByIdQuery(10L))).isEqualTo(org);
+        Organization org = Organization.builder().id(ORG_ID).name("Acme").build();
+        when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(org));
+        assertThat(service.handle(new GetOrganizationByIdQuery(ORG_ID))).isEqualTo(org);
     }
 
     @Test
     void getByIdThrowsWhenNotFound() {
-        when(organizationRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.handle(new GetOrganizationByIdQuery(999L))).isInstanceOf(ResourceNotFoundException.class);
+        when(organizationRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(new GetOrganizationByIdQuery(UNKNOWN_ID))).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void getByIdentifierReturnsOrg() {
-        Organization org = Organization.builder().id(10L).identifier("acme").build();
+        Organization org = Organization.builder().id(ORG_ID).identifier("acme").build();
         when(organizationRepository.findByIdentifier("acme")).thenReturn(Optional.of(org));
         assertThat(service.handle(new GetOrganizationByIdentifierQuery("acme"))).isEqualTo(org);
     }
@@ -57,15 +63,15 @@ class GetOrganizationQueryServiceImplTest {
 
     @Test
     void listUserOrganizationsReturnsOrgs() {
-        Organization org = Organization.builder().id(10L).build();
-        when(organizationRepository.findOrganizationsByUserId(1L)).thenReturn(List.of(org));
-        assertThat(service.handle(new ListUserOrganizationsQuery(1L))).containsExactly(org);
+        Organization org = Organization.builder().id(ORG_ID).build();
+        when(organizationRepository.findOrganizationsByUserId(USER_ID)).thenReturn(List.of(org));
+        assertThat(service.handle(new ListUserOrganizationsQuery(USER_ID))).containsExactly(org);
     }
 
     @Test
     void listOrganizationMembersReturnsMembers() {
-        OrganizationMember member = OrganizationMember.builder().id(1L).build();
-        when(organizationMemberRepository.findByOrganizationId(10L)).thenReturn(List.of(member));
-        assertThat(service.handle(new ListOrganizationMembersQuery(10L))).containsExactly(member);
+        OrganizationMember member = OrganizationMember.builder().id(MEMBER_ID).build();
+        when(organizationMemberRepository.findByOrganizationId(ORG_ID)).thenReturn(List.of(member));
+        assertThat(service.handle(new ListOrganizationMembersQuery(ORG_ID))).containsExactly(member);
     }
 }

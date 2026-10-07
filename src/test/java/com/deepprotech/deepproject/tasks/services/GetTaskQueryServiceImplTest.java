@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,6 +29,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetTaskQueryServiceImplTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID TASK_ID = UUID.fromString("a0000009-0000-0000-0000-000000000001");
+    private static final UUID TASK_ID_2 = UUID.fromString("a0000009-0000-0000-0000-000000000002");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock TaskRepository taskRepository;
     @Mock TaskAssigneeRepository taskAssigneeRepository;
     @Mock TaskTagRepository taskTagRepository;
@@ -35,42 +42,42 @@ class GetTaskQueryServiceImplTest {
 
     @Test
     void getByIdReturnsTask() {
-        Task task = Task.builder().id(100L).title("Task").build();
-        when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
-        assertThat(service.handle(new GetTaskByIdQuery(100L))).isEqualTo(task);
+        Task task = Task.builder().id(TASK_ID).title("Task").build();
+        when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
+        assertThat(service.handle(new GetTaskByIdQuery(TASK_ID))).isEqualTo(task);
     }
 
     @Test
     void getByIdThrowsWhenNotFound() {
-        when(taskRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.handle(new GetTaskByIdQuery(999L))).isInstanceOf(ResourceNotFoundException.class);
+        when(taskRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(new GetTaskByIdQuery(UNKNOWN_ID))).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void listByProjectReturnsTasks() {
-        Task task = Task.builder().id(100L).build();
-        when(taskRepository.findByProjectIdOrderByIdAsc(10L)).thenReturn(List.of(task));
-        assertThat(service.handle(new ListTasksByProjectQuery(10L))).containsExactly(task);
+        Task task = Task.builder().id(TASK_ID).build();
+        when(taskRepository.findByProjectIdOrderByIdAsc(PROJECT_ID)).thenReturn(List.of(task));
+        assertThat(service.handle(new ListTasksByProjectQuery(PROJECT_ID))).containsExactly(task);
     }
 
     @Test
     void listSubtasksReturnsTasks() {
-        Task task = Task.builder().id(101L).parentTaskId(100L).build();
-        when(taskRepository.findByParentTaskIdOrderByIdAsc(100L)).thenReturn(List.of(task));
-        assertThat(service.handle(new ListSubtasksQuery(100L))).containsExactly(task);
+        Task task = Task.builder().id(TASK_ID_2).parentTaskId(TASK_ID).build();
+        when(taskRepository.findByParentTaskIdOrderByIdAsc(TASK_ID)).thenReturn(List.of(task));
+        assertThat(service.handle(new ListSubtasksQuery(TASK_ID))).containsExactly(task);
     }
 
     @Test
     void listTaskAssigneesReturnsAssignees() {
-        TaskAssignee assignee = TaskAssignee.builder().id(1L).taskId(100L).userId(2L).build();
-        when(taskAssigneeRepository.findByTaskId(100L)).thenReturn(List.of(assignee));
-        assertThat(service.handle(new ListTaskAssigneesQuery(100L))).containsExactly(assignee);
+        TaskAssignee assignee = TaskAssignee.builder().id(TASK_ID).taskId(TASK_ID).userId(USER_ID).build();
+        when(taskAssigneeRepository.findByTaskId(TASK_ID)).thenReturn(List.of(assignee));
+        assertThat(service.handle(new ListTaskAssigneesQuery(TASK_ID))).containsExactly(assignee);
     }
 
     @Test
     void listTaskTagsReturnsTags() {
-        TaskTag tag = TaskTag.builder().id(1L).taskId(100L).tagName("backend").build();
-        when(taskTagRepository.findByTaskId(100L)).thenReturn(List.of(tag));
-        assertThat(service.handle(new ListTaskTagsQuery(100L))).containsExactly(tag);
+        TaskTag tag = TaskTag.builder().id(TASK_ID).taskId(TASK_ID).tagName("backend").build();
+        when(taskTagRepository.findByTaskId(TASK_ID)).thenReturn(List.of(tag));
+        assertThat(service.handle(new ListTaskTagsQuery(TASK_ID))).containsExactly(tag);
     }
 }

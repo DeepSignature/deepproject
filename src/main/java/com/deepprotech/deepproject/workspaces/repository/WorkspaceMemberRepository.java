@@ -6,13 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember, Long> {
+public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember, UUID> {
 
-    List<WorkspaceMember> findByWorkspaceId(Long workspaceId);
+    List<WorkspaceMember> findByWorkspaceId(UUID workspaceId);
 
-    Optional<WorkspaceMember> findByWorkspaceIdAndUserId(Long workspaceId, Long userId);
+    Optional<WorkspaceMember> findByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 
-    void deleteByWorkspaceIdAndUserId(Long workspaceId, Long userId);
+    void deleteByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 }

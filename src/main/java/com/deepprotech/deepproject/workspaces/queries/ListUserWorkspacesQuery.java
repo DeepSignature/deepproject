@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.workspaces.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record ListUserWorkspacesQuery(@NotNull Long userId) {}
+import java.util.UUID;
+
+public record ListUserWorkspacesQuery(@NotNull UUID userId) {}

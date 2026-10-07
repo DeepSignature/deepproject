@@ -6,13 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface TaskAssigneeRepository extends JpaRepository<TaskAssignee, Long> {
+public interface TaskAssigneeRepository extends JpaRepository<TaskAssignee, UUID> {
 
-    List<TaskAssignee> findByTaskId(Long taskId);
+    List<TaskAssignee> findByTaskId(UUID taskId);
 
-    Optional<TaskAssignee> findByTaskIdAndUserId(Long taskId, Long userId);
+    Optional<TaskAssignee> findByTaskIdAndUserId(UUID taskId, UUID userId);
 
-    void deleteByTaskIdAndUserId(Long taskId, Long userId);
+    void deleteByTaskIdAndUserId(UUID taskId, UUID userId);
 }

@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.comments.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record ListCommentsByTaskQuery(@NotNull Long taskId) {}
+import java.util.UUID;
+
+public record ListCommentsByTaskQuery(@NotNull UUID taskId) {}

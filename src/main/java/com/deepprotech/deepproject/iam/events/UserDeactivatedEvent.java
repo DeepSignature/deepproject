@@ -1,6 +1,7 @@
 package com.deepprotech.deepproject.iam.events;
 
 import java.time.Instant;
+import java.util.UUID;
 
-public record UserDeactivatedEvent(Long userId, String username, Instant occurredAt) {
+public record UserDeactivatedEvent(UUID userId, String username, Instant occurredAt) {
 }

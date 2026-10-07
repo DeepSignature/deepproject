@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -36,6 +37,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class OrganizationControllerTest {
 
+    private static final UUID ORG_ID = UUID.fromString("a0000003-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID USER_ID_2 = UUID.fromString("a0000002-0000-0000-0000-000000000002");
+    private static final UUID MEMBER_ID = UUID.fromString("a0000005-0000-0000-0000-000000000001");
+
     @Mock CreateOrganizationService createOrganizationService;
     @Mock UpdateOrganizationService updateOrganizationService;
     @Mock DeleteOrganizationService deleteOrganizationService;
@@ -44,7 +50,7 @@ class OrganizationControllerTest {
 
     private MockMvc mockMvc;
 
-    private final Organization org = Organization.builder().id(1L).identifier("my-org").name("My Org").description("Desc").build();
+    private final Organization org = Organization.builder().id(ORG_ID).identifier("my-org").name("My Org").description("Desc").build();
 
     @BeforeEach
     void setUp() {
@@ -57,16 +63,16 @@ class OrganizationControllerTest {
     void getReturnsOrg() throws Exception {
         when(getOrganizationQueryService.handle(any(GetOrganizationByIdQuery.class))).thenReturn(org);
 
-        mockMvc.perform(get("/api/organizations/{id}", 1L))
+        mockMvc.perform(get("/api/organizations/{id}", ORG_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$.id").value(ORG_ID.toString()));
     }
 
     @Test
     void createReturnsCreated() throws Exception {
         when(createOrganizationService.handle(any())).thenReturn(org);
 
-        mockMvc.perform(post("/api/organizations?userId=1")
+        mockMvc.perform(post("/api/organizations?userId=" + USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"identifier\":\"my-org\",\"name\":\"My Org\",\"description\":\"Desc\"}"))
                 .andExpect(status().isCreated())
@@ -75,10 +81,10 @@ class OrganizationControllerTest {
 
     @Test
     void updateReturnsOk() throws Exception {
-        Organization updated = Organization.builder().id(1L).identifier("my-org").name("Updated").description("Desc").build();
+        Organization updated = Organization.builder().id(ORG_ID).identifier("my-org").name("Updated").description("Desc").build();
         when(updateOrganizationService.handle(any())).thenReturn(updated);
 
-        mockMvc.perform(put("/api/organizations/{id}", 1L)
+        mockMvc.perform(put("/api/organizations/{id}", ORG_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Updated\",\"description\":\"Desc\"}"))
                 .andExpect(status().isOk())
@@ -87,38 +93,38 @@ class OrganizationControllerTest {
 
     @Test
     void deleteReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/organizations/{id}", 1L))
+        mockMvc.perform(delete("/api/organizations/{id}", ORG_ID))
                 .andExpect(status().isNoContent());
         verify(deleteOrganizationService).handle(any());
     }
 
     @Test
     void membersReturnsList() throws Exception {
-        OrganizationMember member = OrganizationMember.builder().id(1L).organizationId(1L).userId(2L).role("MEMBER").build();
+        OrganizationMember member = OrganizationMember.builder().id(MEMBER_ID).organizationId(ORG_ID).userId(USER_ID_2).role("MEMBER").build();
         when(getOrganizationQueryService.handle(any(ListOrganizationMembersQuery.class))).thenReturn(List.of(member));
 
-        mockMvc.perform(get("/api/organizations/{id}/members", 1L))
+        mockMvc.perform(get("/api/organizations/{id}/members", ORG_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value(2));
+                .andExpect(jsonPath("$[0].userId").value(USER_ID_2.toString()));
     }
 
     @Test
     void addMemberReturnsCreated() throws Exception {
-        mockMvc.perform(post("/api/organizations/{id}/members?userId=2&role=MEMBER", 1L))
+        mockMvc.perform(post("/api/organizations/{id}/members?userId=" + USER_ID_2 + "&role=MEMBER", ORG_ID))
                 .andExpect(status().isCreated());
         verify(manageOrganizationMemberService).handle(any(AddOrganizationMemberCommand.class));
     }
 
     @Test
     void removeMemberReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/organizations/{id}/members/{userId}", 1L, 2L))
+        mockMvc.perform(delete("/api/organizations/{id}/members/{userId}", ORG_ID, USER_ID_2))
                 .andExpect(status().isNoContent());
         verify(manageOrganizationMemberService).handle(any(RemoveOrganizationMemberCommand.class));
     }
 
     @Test
     void updateMemberRoleReturnsOk() throws Exception {
-        mockMvc.perform(put("/api/organizations/{id}/members/{userId}/role?role=ADMIN", 1L, 2L))
+        mockMvc.perform(put("/api/organizations/{id}/members/{userId}/role?role=ADMIN", ORG_ID, USER_ID_2))
                 .andExpect(status().isOk());
         verify(manageOrganizationMemberService).handle(any(UpdateOrganizationMemberRoleCommand.class));
     }

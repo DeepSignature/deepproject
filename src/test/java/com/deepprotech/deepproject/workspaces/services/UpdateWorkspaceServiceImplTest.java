@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,14 +22,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UpdateWorkspaceServiceImplTest {
 
+    private static final UUID WS_ID = UUID.fromString("a0000006-0000-0000-0000-000000000001");
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("ffffffff-0000-0000-0000-000000000001");
+
     @Mock WorkspaceRepository workspaceRepository;
     @InjectMocks UpdateWorkspaceServiceImpl service;
 
     @Test
     void updatesWorkspaceReturnsIt() {
-        UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(1L, "New WS", "New Desc");
-        Workspace ws = Workspace.builder().id(1L).name("Old WS").slug("ws").description("Old Desc").ownerId(1L).build();
-        when(workspaceRepository.findById(1L)).thenReturn(Optional.of(ws));
+        UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(WS_ID, "New WS", "New Desc");
+        Workspace ws = Workspace.builder().id(WS_ID).name("Old WS").slug("ws").description("Old Desc").ownerId(USER_ID).build();
+        when(workspaceRepository.findById(WS_ID)).thenReturn(Optional.of(ws));
         when(workspaceRepository.save(any(Workspace.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Workspace result = service.handle(cmd);
@@ -40,8 +45,8 @@ class UpdateWorkspaceServiceImplTest {
 
     @Test
     void throwsWhenNotFound() {
-        UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(999L, "New WS", "New Desc");
-        when(workspaceRepository.findById(999L)).thenReturn(Optional.empty());
+        UpdateWorkspaceCommand cmd = new UpdateWorkspaceCommand(UNKNOWN_ID, "New WS", "New Desc");
+        when(workspaceRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.handle(cmd)).isInstanceOf(ResourceNotFoundException.class);
     }
 }

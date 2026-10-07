@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,26 +22,30 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetProjectQueryServiceImplTest {
 
+    private static final UUID PROJECT_ID = UUID.fromString("a0000001-0000-0000-0000-000000000001");
+    private static final UUID UNKNOWN_ID = UUID.fromString("a0000001-0000-0000-0000-0000000999");
+    private static final UUID WS_ID = UUID.fromString("a0000006-0000-0000-0000-000000000001");
+
     @Mock ProjectRepository projectRepository;
     @InjectMocks GetProjectQueryServiceImpl service;
 
     @Test
     void getByIdReturnsProject() {
-        Project p = Project.builder().id(10L).name("Proj").build();
-        when(projectRepository.findById(10L)).thenReturn(Optional.of(p));
-        assertThat(service.handle(new GetProjectByIdQuery(10L))).isEqualTo(p);
+        Project p = Project.builder().id(PROJECT_ID).name("Proj").build();
+        when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(p));
+        assertThat(service.handle(new GetProjectByIdQuery(PROJECT_ID))).isEqualTo(p);
     }
 
     @Test
     void getByIdThrowsWhenNotFound() {
-        when(projectRepository.findById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.handle(new GetProjectByIdQuery(999L))).isInstanceOf(ResourceNotFoundException.class);
+        when(projectRepository.findById(UNKNOWN_ID)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.handle(new GetProjectByIdQuery(UNKNOWN_ID))).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
     void listByWorkspaceReturnsProjects() {
-        Project p = Project.builder().id(10L).build();
-        when(projectRepository.findByWorkspaceIdOrderByIdAsc(1L)).thenReturn(List.of(p));
-        assertThat(service.handle(new ListProjectsByWorkspaceQuery(1L))).containsExactly(p);
+        Project p = Project.builder().id(PROJECT_ID).build();
+        when(projectRepository.findByWorkspaceIdOrderByIdAsc(WS_ID)).thenReturn(List.of(p));
+        assertThat(service.handle(new ListProjectsByWorkspaceQuery(WS_ID))).containsExactly(p);
     }
 }

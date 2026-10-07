@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.comments.queries;
 
 import jakarta.validation.constraints.NotNull;
 
-public record GetCommentByIdQuery(@NotNull Long commentId) {}
+import java.util.UUID;
+
+public record GetCommentByIdQuery(@NotNull UUID commentId) {}

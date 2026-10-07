@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.iam.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record RemoveUserRoleCommand(@NotNull Long userId, @NotNull Long roleId) {}
+import java.util.UUID;
+
+public record RemoveUserRoleCommand(@NotNull UUID userId, @NotNull UUID roleId) {}

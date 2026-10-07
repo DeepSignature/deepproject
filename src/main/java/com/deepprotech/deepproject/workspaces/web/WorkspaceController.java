@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/workspaces")
@@ -34,7 +35,7 @@ public class WorkspaceController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_READ')")
-    public ResponseEntity<List<WorkspaceResponse>> list(@RequestParam Long userId) {
+    public ResponseEntity<List<WorkspaceResponse>> list(@RequestParam UUID userId) {
         List<WorkspaceResponse> list = getWorkspaceQueryService.handle(new ListUserWorkspacesQuery(userId))
                 .stream()
                 .map(WorkspaceResponse::from)
@@ -44,7 +45,7 @@ public class WorkspaceController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_READ')")
-    public ResponseEntity<WorkspaceResponse> get(@PathVariable Long id) {
+    public ResponseEntity<WorkspaceResponse> get(@PathVariable UUID id) {
         Workspace ws = getWorkspaceQueryService.handle(new GetWorkspaceByIdQuery(id));
         return ResponseEntity.ok(WorkspaceResponse.from(ws));
     }
@@ -52,7 +53,7 @@ public class WorkspaceController {
     @PostMapping
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_CREATE')")
     public ResponseEntity<WorkspaceResponse> create(@Valid @RequestBody CreateWorkspaceRequest request,
-                                                    @RequestParam Long ownerId) {
+                                                    @RequestParam UUID ownerId) {
         Workspace ws = createWorkspaceService.handle(new CreateWorkspaceCommand(
                 request.name(), request.slug(), request.description(), ownerId, request.organizationId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(WorkspaceResponse.from(ws));
@@ -60,7 +61,7 @@ public class WorkspaceController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_UPDATE')")
-    public ResponseEntity<WorkspaceResponse> update(@PathVariable Long id,
+    public ResponseEntity<WorkspaceResponse> update(@PathVariable UUID id,
                                                     @Valid @RequestBody UpdateWorkspaceRequest request) {
         Workspace ws = updateWorkspaceService.handle(new UpdateWorkspaceCommand(id, request.name(), request.description()));
         return ResponseEntity.ok(WorkspaceResponse.from(ws));
@@ -68,7 +69,7 @@ public class WorkspaceController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_DELETE')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deleteWorkspaceService.handle(new DeleteWorkspaceCommand(id));
         return ResponseEntity.noContent().build();
     }

@@ -2,4 +2,6 @@ package com.deepprotech.deepproject.notifications.commands;
 
 import jakarta.validation.constraints.NotNull;
 
-public record MarkAllNotificationsReadCommand(@NotNull Long userId) {}
+import java.util.UUID;
+
+public record MarkAllNotificationsReadCommand(@NotNull UUID userId) {}

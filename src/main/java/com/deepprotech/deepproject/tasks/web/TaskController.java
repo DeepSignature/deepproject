@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/tasks")
@@ -33,7 +34,7 @@ public class TaskController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
-    public ResponseEntity<List<TaskResponse>> list(@PathVariable Long projectId) {
+    public ResponseEntity<List<TaskResponse>> list(@PathVariable UUID projectId) {
         List<TaskResponse> list = getTaskQueryService.handle(new ListTasksByProjectQuery(projectId))
                 .stream()
                 .map(TaskResponse::from)
@@ -43,14 +44,14 @@ public class TaskController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
-    public ResponseEntity<TaskResponse> get(@PathVariable Long id) {
+    public ResponseEntity<TaskResponse> get(@PathVariable UUID id) {
         Task t = getTaskQueryService.handle(new GetTaskByIdQuery(id));
         return ResponseEntity.ok(TaskResponse.from(t));
     }
 
     @GetMapping("/{id}/subtasks")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
-    public ResponseEntity<List<TaskResponse>> subtasks(@PathVariable Long id) {
+    public ResponseEntity<List<TaskResponse>> subtasks(@PathVariable UUID id) {
         List<TaskResponse> list = getTaskQueryService.handle(new ListSubtasksQuery(id))
                 .stream()
                 .map(TaskResponse::from)
@@ -60,7 +61,7 @@ public class TaskController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('PERMISSION_TASK_CREATE')")
-    public ResponseEntity<TaskResponse> create(@PathVariable Long projectId,
+    public ResponseEntity<TaskResponse> create(@PathVariable UUID projectId,
                                                @Valid @RequestBody CreateTaskRequest request) {
         Task t = createTaskService.handle(new CreateTaskCommand(
                 projectId, request.title(), request.description(), request.priority(), request.taskType()));
@@ -69,7 +70,7 @@ public class TaskController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_UPDATE')")
-    public ResponseEntity<TaskResponse> update(@PathVariable Long id,
+    public ResponseEntity<TaskResponse> update(@PathVariable UUID id,
                                                @Valid @RequestBody UpdateTaskRequest request) {
         Task t = updateTaskService.handle(new UpdateTaskCommand(id, request.title(), request.description(), request.priority()));
         return ResponseEntity.ok(TaskResponse.from(t));
@@ -77,42 +78,42 @@ public class TaskController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_STATUS_CHANGE')")
-    public ResponseEntity<TaskResponse> updateStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<TaskResponse> updateStatus(@PathVariable UUID id, @RequestParam String status) {
         Task t = changeTaskStatusService.handle(new ChangeTaskStatusCommand(id, status));
         return ResponseEntity.ok(TaskResponse.from(t));
     }
 
     @PostMapping("/{id}/assign")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_ASSIGN')")
-    public ResponseEntity<Void> assign(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<Void> assign(@PathVariable UUID id, @RequestParam UUID userId) {
         assignTaskService.handle(new AssignTaskUserCommand(id, userId));
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}/assign/{userId}")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_ASSIGN')")
-    public ResponseEntity<Void> unassign(@PathVariable Long id, @PathVariable Long userId) {
+    public ResponseEntity<Void> unassign(@PathVariable UUID id, @PathVariable UUID userId) {
         assignTaskService.handle(new UnassignTaskUserCommand(id, userId));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/tags")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_UPDATE')")
-    public ResponseEntity<Void> addTag(@PathVariable Long id, @RequestParam String tagName) {
+    public ResponseEntity<Void> addTag(@PathVariable UUID id, @RequestParam String tagName) {
         manageTaskTagService.handle(new AddTaskTagCommand(id, tagName));
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}/tags/{tagName}")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_UPDATE')")
-    public ResponseEntity<Void> removeTag(@PathVariable Long id, @PathVariable String tagName) {
+    public ResponseEntity<Void> removeTag(@PathVariable UUID id, @PathVariable String tagName) {
         manageTaskTagService.handle(new RemoveTaskTagCommand(id, tagName));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_DELETE')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deleteTaskService.handle(new DeleteTaskCommand(id));
         return ResponseEntity.noContent().build();
     }

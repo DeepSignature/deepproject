@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -23,10 +24,10 @@ import java.time.Instant;
 public class Task extends BaseEntity {
 
     @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    private UUID projectId;
 
     @Column(name = "parent_task_id")
-    private Long parentTaskId;
+    private UUID parentTaskId;
 
     @Column(name = "title", nullable = false, length = 500)
     private String title;

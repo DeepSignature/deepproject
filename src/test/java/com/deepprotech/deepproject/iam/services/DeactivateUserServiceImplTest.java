@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,14 +18,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DeactivateUserServiceImplTest {
 
+    private static final UUID USER_ID = UUID.fromString("a0000002-0000-0000-0000-000000000001");
+
     @Mock UserRepository userRepository;
     @InjectMocks DeactivateUserServiceImpl service;
 
     @Test
     void deactivatesUser() {
-        User user = User.builder().id(1L).active(true).build();
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        service.handle(new DeactivateUserCommand(1L));
+        User user = User.builder().id(USER_ID).active(true).build();
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        service.handle(new DeactivateUserCommand(USER_ID));
         verify(userRepository).save(user);
     }
 }
