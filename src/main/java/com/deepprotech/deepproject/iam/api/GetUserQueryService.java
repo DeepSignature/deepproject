@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.iam.api;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Role;
 import com.deepprotech.deepproject.core.User;
 import com.deepprotech.deepproject.iam.queries.GetUserByIdQuery;
@@ -14,6 +15,6 @@ public interface GetUserQueryService {
     User handle(GetUserByIdQuery query);
     User handle(GetUserByUsernameQuery query);
     User handle(GetUserByIdentityIdQuery query);
-    List<User> handle(ListUsersQuery query);
+    CursorPage<User> handle(ListUsersQuery query);
     List<Role> getUserRoles(UUID userId);
 }

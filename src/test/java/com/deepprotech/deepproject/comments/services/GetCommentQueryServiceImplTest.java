@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,7 +48,7 @@ class GetCommentQueryServiceImplTest {
     @Test
     void listByTaskReturnsComments() {
         Comment comment = Comment.builder().id(COMMENT_ID).taskId(TASK_ID).build();
-        when(commentRepository.findByTaskIdOrderByCreatedAtAsc(TASK_ID)).thenReturn(List.of(comment));
-        assertThat(service.handle(new ListCommentsByTaskQuery(TASK_ID))).containsExactly(comment);
+        when(commentRepository.findByTaskId(eq(TASK_ID), any(Pageable.class))).thenReturn(List.of(comment));
+        assertThat(service.handle(new ListCommentsByTaskQuery(TASK_ID, 20, null)).items()).containsExactly(comment);
     }
 }

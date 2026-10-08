@@ -20,6 +20,15 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(InvalidCursorException.class)
+    public ProblemDetail handleInvalidCursor(InvalidCursorException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setTitle("Bad Request");
+        pd.setType(URI.create("https://api.deepproject.com/errors/bad-request"));
+        pd.setProperty("timestamp", Instant.now());
+        return pd;
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleBadRequest(IllegalArgumentException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());

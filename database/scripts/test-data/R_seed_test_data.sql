@@ -6,16 +6,16 @@
 -- 1. Seed Organizations
 INSERT INTO organizations (id, identifier, name, description)
 VALUES
-    ('a0000003-0000-0000-0000-000000000001', 'deep-engineering', 'Deep Engineering', 'Core engineering organization'),
-    ('a0000003-0000-0000-0000-000000000002', 'product-mgmt', 'Product Management', 'Product roadmap and design org')
+    ('a0000003-0000-0000-0000-000000000001', 'deeppro', 'DeepProTech Co. Ltd', 'Cong ty DeepproTech'),
+    ('a0000003-0000-0000-0000-000000000002', 'vcyber', 'Cong ty VCyber Vietnam', 'Cong ty VCyber Vietnam')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Seed IAM Users
 INSERT INTO users (id, identity_id, username, email, display_name, active)
 VALUES
     ('a0000002-0000-0000-0000-000000000001', 'kc-admin-00001', 'admin', 'admin@deepproject.local', 'Admin User', true),
-    ('a0000002-0000-0000-0000-000000000002', 'kc-john-00002', 'john_doe', 'john@deepproject.local', 'John Doe', true),
-    ('a0000002-0000-0000-0000-000000000003', 'kc-jane-00003', 'jane_smith', 'jane@deepproject.local', 'Jane Smith', true)
+    ('a0000002-0000-0000-0000-000000000002', 'kc-john-00002', 'contributor', 'john@deepproject.local', 'John Doe', true),
+    ('a0000002-0000-0000-0000-000000000003', 'kc-jane-00003', 'viewer', 'jane@deepproject.local', 'Jane Smith', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. Seed IAM Roles
@@ -64,9 +64,9 @@ ON CONFLICT (workspace_id, user_id) DO NOTHING;
 -- 8. Seed Projects
 INSERT INTO projects (id, workspace_id, name, description, status)
 VALUES
-    ('a0000001-0000-0000-0000-000000000001', 'a0000006-0000-0000-0000-000000000001', 'Project Alpha', 'Core backend platform development', 'ACTIVE'),
-    ('a0000001-0000-0000-0000-000000000002', 'a0000006-0000-0000-0000-000000000001', 'Project Beta', 'Mobile app client integration', 'ON_HOLD'),
-    ('a0000001-0000-0000-0000-000000000003', 'a0000006-0000-0000-0000-000000000002', 'Q4 Roadmap', 'Product roadmap planning and user research', 'ACTIVE')
+    ('a0000001-0000-0000-0000-000000000001', 'a0000006-0000-0000-0000-000000000001', 'Project DeepSalesOps', 'Core backend platform development', 'ACTIVE'),
+    ('a0000001-0000-0000-0000-000000000002', 'a0000006-0000-0000-0000-000000000001', 'Project DeepSalesOps Mobile platform', 'Mobile app client integration', 'ON_HOLD'),
+    ('a0000001-0000-0000-0000-000000000003', 'a0000006-0000-0000-0000-000000000002', 'Project DeepTrace', 'Product roadmap planning and user research', 'ACTIVE')
 ON CONFLICT (id) DO NOTHING;
 
 -- 9. Seed Project Members

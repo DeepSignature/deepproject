@@ -12,15 +12,17 @@ import com.deepprotech.deepproject.comments.dto.CreateCommentRequest;
 import com.deepprotech.deepproject.comments.dto.UpdateCommentRequest;
 import com.deepprotech.deepproject.comments.queries.GetCommentByIdQuery;
 import com.deepprotech.deepproject.comments.queries.ListCommentsByTaskQuery;
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Comment;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,11 +37,12 @@ public class CommentController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_COMMENT_READ')")
-    public ResponseEntity<List<CommentResponse>> list(@PathVariable UUID taskId) {
-        List<CommentResponse> list = getCommentQueryService.handle(new ListCommentsByTaskQuery(taskId))
-                .stream()
-                .map(CommentResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<CommentResponse>> list(
+            @PathVariable UUID taskId,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<CommentResponse> list = getCommentQueryService.handle(new ListCommentsByTaskQuery(taskId, limit, cursor))
+                .map(CommentResponse::from);
         return ResponseEntity.ok(list);
     }
 

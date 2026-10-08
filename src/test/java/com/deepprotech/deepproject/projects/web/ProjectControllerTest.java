@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.projects.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Project;
 import com.deepprotech.deepproject.projects.api.ChangeProjectStatusService;
 import com.deepprotech.deepproject.projects.api.CreateProjectService;
@@ -56,10 +57,10 @@ class ProjectControllerTest {
 
     @Test
     void listReturnsProjects() throws Exception {
-        when(getProjectQueryService.handle(any(ListProjectsByWorkspaceQuery.class))).thenReturn(List.of(project));
+        when(getProjectQueryService.handle(any(ListProjectsByWorkspaceQuery.class))).thenReturn(CursorPage.of(List.of(project), null, false));
         mockMvc.perform(get("/api/workspaces/{workspaceId}/projects", WS_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(PROJECT_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(PROJECT_ID.toString()));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.tasks.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.api.AssignTaskService;
 import com.deepprotech.deepproject.tasks.api.ChangeTaskStatusService;
@@ -66,10 +67,10 @@ class TaskControllerTest {
 
     @Test
     void listReturnsTasks() throws Exception {
-        when(getTaskQueryService.handle(any(ListTasksByProjectQuery.class))).thenReturn(List.of(task));
+        when(getTaskQueryService.handle(any(ListTasksByProjectQuery.class))).thenReturn(CursorPage.of(List.of(task), null, false));
         mockMvc.perform(get("/api/projects/{projectId}/tasks", PROJECT_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(TASK_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(TASK_ID.toString()));
     }
 
     @Test
@@ -82,10 +83,10 @@ class TaskControllerTest {
 
     @Test
     void subtasksReturnsList() throws Exception {
-        when(getTaskQueryService.handle(any(ListSubtasksQuery.class))).thenReturn(List.of(task));
+        when(getTaskQueryService.handle(any(ListSubtasksQuery.class))).thenReturn(CursorPage.of(List.of(task), null, false));
         mockMvc.perform(get("/api/projects/{projectId}/tasks/{id}/subtasks", PROJECT_ID, TASK_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(TASK_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(TASK_ID.toString()));
     }
 
     @Test

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,15 +59,15 @@ class GetTaskQueryServiceImplTest {
     @Test
     void listByProjectReturnsTasks() {
         Task task = Task.builder().id(TASK_ID).build();
-        when(taskRepository.findByProjectIdOrderByIdAsc(PROJECT_ID)).thenReturn(List.of(task));
-        assertThat(service.handle(new ListTasksByProjectQuery(PROJECT_ID))).containsExactly(task);
+        when(taskRepository.findByProjectId(eq(PROJECT_ID), any(Pageable.class))).thenReturn(List.of(task));
+        assertThat(service.handle(new ListTasksByProjectQuery(PROJECT_ID, 20, null)).items()).containsExactly(task);
     }
 
     @Test
     void listSubtasksReturnsTasks() {
         Task task = Task.builder().id(TASK_ID_2).parentTaskId(TASK_ID).build();
-        when(taskRepository.findByParentTaskIdOrderByIdAsc(TASK_ID)).thenReturn(List.of(task));
-        assertThat(service.handle(new ListSubtasksQuery(TASK_ID))).containsExactly(task);
+        when(taskRepository.findByParentTaskId(eq(TASK_ID), any(Pageable.class))).thenReturn(List.of(task));
+        assertThat(service.handle(new ListSubtasksQuery(TASK_ID, 20, null)).items()).containsExactly(task);
     }
 
     @Test

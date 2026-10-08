@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,8 +78,8 @@ class GetUserQueryServiceImplTest {
     @Test
     void listUsersReturnsAll() {
         User user = User.builder().id(USER_ID).username("john").build();
-        when(userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))).thenReturn(List.of(user));
-        assertThat(service.handle(new ListUsersQuery())).containsExactly(user);
+        when(userRepository.findAllOrderByCreatedAtAscIdAsc(any(Pageable.class))).thenReturn(List.of(user));
+        assertThat(service.handle(new ListUsersQuery(20, null)).items()).containsExactly(user);
     }
 
     @Test

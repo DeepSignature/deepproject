@@ -61,7 +61,7 @@
       "realmRoles": ["SYSTEM_ADMIN", "default-roles-deepproject"]
     },
     {
-      "username": "john_doe",
+      "username": "contributor",
       "email": "john@deepproject.local",
       "firstName": "John",
       "lastName": "Doe",
@@ -70,14 +70,14 @@
       "credentials": [
         {
           "type": "password",
-          "value": "john123",
+          "value": "contributor",
           "temporary": false
         }
       ],
       "realmRoles": ["CONTRIBUTOR", "default-roles-deepproject"]
     },
     {
-      "username": "jane_smith",
+      "username": "viewer",
       "email": "jane@deepproject.local",
       "firstName": "Jane",
       "lastName": "Smith",
@@ -86,7 +86,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "jane123",
+          "value": "viewer",
           "temporary": false
         }
       ],

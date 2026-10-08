@@ -1,6 +1,10 @@
 package com.deepprotech.deepproject.organizations.services;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
+import com.deepprotech.deepproject.common.pagination.CursorCodec;
+import com.deepprotech.deepproject.common.pagination.CursorKey;
+import com.deepprotech.deepproject.common.pagination.CursorPages;
 import com.deepprotech.deepproject.core.Organization;
 import com.deepprotech.deepproject.core.OrganizationMember;
 import com.deepprotech.deepproject.organizations.api.GetOrganizationQueryService;
@@ -8,10 +12,12 @@ import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdQuer
 import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdentifierQuery;
 import com.deepprotech.deepproject.organizations.queries.ListOrganizationMembersQuery;
 import com.deepprotech.deepproject.organizations.queries.ListUserOrganizationsQuery;
+import com.deepprotech.deepproject.organizations.queries.PageOrganizationMembersQuery;
 import com.deepprotech.deepproject.organizations.repository.OrganizationMemberRepository;
 import com.deepprotech.deepproject.organizations.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,5 +52,15 @@ public class GetOrganizationQueryServiceImpl implements GetOrganizationQueryServ
     @Override
     public List<OrganizationMember> handle(ListOrganizationMembersQuery query) {
         return organizationMemberRepository.findByOrganizationId(query.organizationId());
+    }
+
+    @Override
+    public CursorPage<OrganizationMember> handle(PageOrganizationMembersQuery query) {
+        PageRequest pageable = PageRequest.of(0, query.limit() + 1);
+        CursorKey key = CursorCodec.decodeOrNull(query.cursor());
+        List<OrganizationMember> members = key == null
+                ? organizationMemberRepository.findMembersByOrganizationId(query.organizationId(), pageable)
+                : organizationMemberRepository.findMembersByOrganizationIdAfter(query.organizationId(), key.createdAt(), key.id(), pageable);
+        return CursorPages.build(members, query.limit(), OrganizationMember::getCreatedAt, OrganizationMember::getId);
     }
 }

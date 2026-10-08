@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.workspaces.api;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Workspace;
 import com.deepprotech.deepproject.core.WorkspaceMember;
 import com.deepprotech.deepproject.workspaces.queries.GetWorkspaceByIdQuery;
@@ -12,6 +13,6 @@ import java.util.List;
 public interface GetWorkspaceQueryService {
     Workspace handle(GetWorkspaceByIdQuery query);
     Workspace handle(GetWorkspaceBySlugQuery query);
-    List<Workspace> handle(ListUserWorkspacesQuery query);
+    CursorPage<Workspace> handle(ListUserWorkspacesQuery query);
     List<WorkspaceMember> handle(ListWorkspaceMembersQuery query);
 }

@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.organizations.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Organization;
 import com.deepprotech.deepproject.organizations.api.CreateOrganizationService;
 import com.deepprotech.deepproject.organizations.api.DeleteOrganizationService;
@@ -17,15 +18,16 @@ import com.deepprotech.deepproject.organizations.dto.OrganizationMemberResponse;
 import com.deepprotech.deepproject.organizations.dto.OrganizationResponse;
 import com.deepprotech.deepproject.organizations.dto.UpdateOrganizationRequest;
 import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdQuery;
-import com.deepprotech.deepproject.organizations.queries.ListOrganizationMembersQuery;
+import com.deepprotech.deepproject.organizations.queries.PageOrganizationMembersQuery;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -72,11 +74,12 @@ public class OrganizationController {
 
     @GetMapping("/{id}/members")
     @PreAuthorize("hasAuthority('PERMISSION_ORG_READ')")
-    public ResponseEntity<List<OrganizationMemberResponse>> members(@PathVariable UUID id) {
-        List<OrganizationMemberResponse> list = getOrganizationQueryService.handle(new ListOrganizationMembersQuery(id))
-                .stream()
-                .map(OrganizationMemberResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<OrganizationMemberResponse>> members(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<OrganizationMemberResponse> list = getOrganizationQueryService.handle(new PageOrganizationMembersQuery(id, limit, cursor))
+                .map(OrganizationMemberResponse::from);
         return ResponseEntity.ok(list);
     }
 

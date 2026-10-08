@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.tasks.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.api.*;
 import com.deepprotech.deepproject.tasks.commands.*;
@@ -10,13 +11,14 @@ import com.deepprotech.deepproject.tasks.queries.GetTaskByIdQuery;
 import com.deepprotech.deepproject.tasks.queries.ListSubtasksQuery;
 import com.deepprotech.deepproject.tasks.queries.ListTasksByProjectQuery;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,11 +36,12 @@ public class TaskController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
-    public ResponseEntity<List<TaskResponse>> list(@PathVariable UUID projectId) {
-        List<TaskResponse> list = getTaskQueryService.handle(new ListTasksByProjectQuery(projectId))
-                .stream()
-                .map(TaskResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<TaskResponse>> list(
+            @PathVariable UUID projectId,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<TaskResponse> list = getTaskQueryService.handle(new ListTasksByProjectQuery(projectId, limit, cursor))
+                .map(TaskResponse::from);
         return ResponseEntity.ok(list);
     }
 
@@ -51,11 +54,12 @@ public class TaskController {
 
     @GetMapping("/{id}/subtasks")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
-    public ResponseEntity<List<TaskResponse>> subtasks(@PathVariable UUID id) {
-        List<TaskResponse> list = getTaskQueryService.handle(new ListSubtasksQuery(id))
-                .stream()
-                .map(TaskResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<TaskResponse>> subtasks(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<TaskResponse> list = getTaskQueryService.handle(new ListSubtasksQuery(id, limit, cursor))
+                .map(TaskResponse::from);
         return ResponseEntity.ok(list);
     }
 
