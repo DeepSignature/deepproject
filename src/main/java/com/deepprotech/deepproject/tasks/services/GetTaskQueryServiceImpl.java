@@ -1,6 +1,10 @@
 package com.deepprotech.deepproject.tasks.services;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
+import com.deepprotech.deepproject.common.pagination.CursorCodec;
+import com.deepprotech.deepproject.common.pagination.CursorKey;
+import com.deepprotech.deepproject.common.pagination.CursorPages;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.core.TaskAssignee;
 import com.deepprotech.deepproject.core.TaskTag;
@@ -15,6 +19,7 @@ import com.deepprotech.deepproject.tasks.repository.TaskRepository;
 import com.deepprotech.deepproject.tasks.repository.TaskTagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +42,23 @@ public class GetTaskQueryServiceImpl implements GetTaskQueryService {
     }
 
     @Override
-    public List<Task> handle(ListTasksByProjectQuery query) {
-        return taskRepository.findByProjectIdOrderByIdAsc(query.projectId());
+    public CursorPage<Task> handle(ListTasksByProjectQuery query) {
+        PageRequest pageable = PageRequest.of(0, query.limit() + 1);
+        CursorKey key = CursorCodec.decodeOrNull(query.cursor());
+        List<Task> tasks = key == null
+                ? taskRepository.findByProjectId(query.projectId(), pageable)
+                : taskRepository.findByProjectIdAfter(query.projectId(), key.createdAt(), key.id(), pageable);
+        return CursorPages.build(tasks, query.limit(), Task::getCreatedAt, Task::getId);
     }
 
     @Override
-    public List<Task> handle(ListSubtasksQuery query) {
-        return taskRepository.findByParentTaskIdOrderByIdAsc(query.parentTaskId());
+    public CursorPage<Task> handle(ListSubtasksQuery query) {
+        PageRequest pageable = PageRequest.of(0, query.limit() + 1);
+        CursorKey key = CursorCodec.decodeOrNull(query.cursor());
+        List<Task> tasks = key == null
+                ? taskRepository.findByParentTaskId(query.parentTaskId(), pageable)
+                : taskRepository.findByParentTaskIdAfter(query.parentTaskId(), key.createdAt(), key.id(), pageable);
+        return CursorPages.build(tasks, query.limit(), Task::getCreatedAt, Task::getId);
     }
 
     @Override

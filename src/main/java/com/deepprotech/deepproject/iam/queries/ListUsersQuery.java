@@ -1,3 +1,5 @@
 package com.deepprotech.deepproject.iam.queries;
 
-public record ListUsersQuery() {}
+import org.springframework.lang.Nullable;
+
+public record ListUsersQuery(int limit, @Nullable String cursor) {}

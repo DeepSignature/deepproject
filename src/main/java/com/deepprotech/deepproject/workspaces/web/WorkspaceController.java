@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.workspaces.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Workspace;
 import com.deepprotech.deepproject.workspaces.api.CreateWorkspaceService;
 import com.deepprotech.deepproject.workspaces.api.DeleteWorkspaceService;
@@ -14,13 +15,14 @@ import com.deepprotech.deepproject.workspaces.dto.WorkspaceResponse;
 import com.deepprotech.deepproject.workspaces.queries.GetWorkspaceByIdQuery;
 import com.deepprotech.deepproject.workspaces.queries.ListUserWorkspacesQuery;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,11 +37,12 @@ public class WorkspaceController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('PERMISSION_WORKSPACE_READ')")
-    public ResponseEntity<List<WorkspaceResponse>> list(@RequestParam UUID userId) {
-        List<WorkspaceResponse> list = getWorkspaceQueryService.handle(new ListUserWorkspacesQuery(userId))
-                .stream()
-                .map(WorkspaceResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<WorkspaceResponse>> list(
+            @RequestParam UUID userId,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<WorkspaceResponse> list = getWorkspaceQueryService.handle(new ListUserWorkspacesQuery(userId, limit, cursor))
+                .map(WorkspaceResponse::from);
         return ResponseEntity.ok(list);
     }
 

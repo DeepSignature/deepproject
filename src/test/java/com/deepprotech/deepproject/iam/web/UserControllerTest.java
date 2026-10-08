@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.iam.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.User;
 import com.deepprotech.deepproject.iam.api.CreateUserService;
 import com.deepprotech.deepproject.iam.api.DeactivateUserService;
@@ -63,11 +64,11 @@ class UserControllerTest {
 
     @Test
     void listReturnsUsers() throws Exception {
-        when(getUserQueryService.handle(any(ListUsersQuery.class))).thenReturn(List.of(user));
+        when(getUserQueryService.handle(any(ListUsersQuery.class))).thenReturn(CursorPage.of(List.of(user), null, false));
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(USER_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(USER_ID.toString()));
     }
 
     @Test

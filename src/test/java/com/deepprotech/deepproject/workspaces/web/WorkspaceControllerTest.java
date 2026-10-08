@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.workspaces.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Workspace;
 import com.deepprotech.deepproject.workspaces.api.CreateWorkspaceService;
 import com.deepprotech.deepproject.workspaces.api.DeleteWorkspaceService;
@@ -54,10 +55,10 @@ class WorkspaceControllerTest {
 
     @Test
     void listReturnsWorkspaces() throws Exception {
-        when(getWorkspaceQueryService.handle(any(ListUserWorkspacesQuery.class))).thenReturn(List.of(ws));
+        when(getWorkspaceQueryService.handle(any(ListUserWorkspacesQuery.class))).thenReturn(CursorPage.of(List.of(ws), null, false));
         mockMvc.perform(get("/api/workspaces?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(WS_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(WS_ID.toString()));
     }
 
     @Test

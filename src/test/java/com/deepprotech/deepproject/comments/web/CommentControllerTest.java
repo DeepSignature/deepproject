@@ -6,6 +6,7 @@ import com.deepprotech.deepproject.comments.api.GetCommentQueryService;
 import com.deepprotech.deepproject.comments.api.UpdateCommentService;
 import com.deepprotech.deepproject.comments.queries.GetCommentByIdQuery;
 import com.deepprotech.deepproject.comments.queries.ListCommentsByTaskQuery;
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Comment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,10 +55,10 @@ class CommentControllerTest {
 
     @Test
     void listReturnsComments() throws Exception {
-        when(getCommentQueryService.handle(any(ListCommentsByTaskQuery.class))).thenReturn(List.of(comment));
+        when(getCommentQueryService.handle(any(ListCommentsByTaskQuery.class))).thenReturn(CursorPage.of(List.of(comment), null, false));
         mockMvc.perform(get("/api/tasks/{taskId}/comments", TASK_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(COMMENT_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(COMMENT_ID.toString()));
     }
 
     @Test

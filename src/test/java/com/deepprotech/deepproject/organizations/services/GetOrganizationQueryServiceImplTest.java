@@ -7,6 +7,7 @@ import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdQuer
 import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdentifierQuery;
 import com.deepprotech.deepproject.organizations.queries.ListOrganizationMembersQuery;
 import com.deepprotech.deepproject.organizations.queries.ListUserOrganizationsQuery;
+import com.deepprotech.deepproject.organizations.queries.PageOrganizationMembersQuery;
 import com.deepprotech.deepproject.organizations.repository.OrganizationMemberRepository;
 import com.deepprotech.deepproject.organizations.repository.OrganizationRepository;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,5 +77,12 @@ class GetOrganizationQueryServiceImplTest {
         OrganizationMember member = OrganizationMember.builder().id(MEMBER_ID).build();
         when(organizationMemberRepository.findByOrganizationId(ORG_ID)).thenReturn(List.of(member));
         assertThat(service.handle(new ListOrganizationMembersQuery(ORG_ID))).containsExactly(member);
+    }
+
+    @Test
+    void pageOrganizationMembersReturnsMembers() {
+        OrganizationMember member = OrganizationMember.builder().id(MEMBER_ID).build();
+        when(organizationMemberRepository.findMembersByOrganizationId(eq(ORG_ID), any(Pageable.class))).thenReturn(List.of(member));
+        assertThat(service.handle(new PageOrganizationMembersQuery(ORG_ID, 20, null)).items()).containsExactly(member);
     }
 }

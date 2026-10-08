@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,8 +67,8 @@ class GetWorkspaceQueryServiceImplTest {
     @Test
     void listUserWorkspacesReturnsWorkspaces() {
         Workspace ws = Workspace.builder().id(WS_ID).build();
-        when(workspaceRepository.findWorkspacesByUserId(USER_ID)).thenReturn(List.of(ws));
-        assertThat(service.handle(new ListUserWorkspacesQuery(USER_ID))).containsExactly(ws);
+        when(workspaceRepository.findWorkspacesByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(ws));
+        assertThat(service.handle(new ListUserWorkspacesQuery(USER_ID, 20, null)).items()).containsExactly(ws);
     }
 
     @Test

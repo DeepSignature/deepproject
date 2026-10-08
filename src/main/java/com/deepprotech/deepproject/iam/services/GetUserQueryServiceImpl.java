@@ -1,6 +1,10 @@
 package com.deepprotech.deepproject.iam.services;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
+import com.deepprotech.deepproject.common.pagination.CursorKey;
+import com.deepprotech.deepproject.common.pagination.CursorCodec;
+import com.deepprotech.deepproject.common.pagination.CursorPages;
 import com.deepprotech.deepproject.core.Role;
 import com.deepprotech.deepproject.core.User;
 import com.deepprotech.deepproject.iam.api.GetUserQueryService;
@@ -12,7 +16,7 @@ import com.deepprotech.deepproject.iam.repository.RoleRepository;
 import com.deepprotech.deepproject.iam.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,8 +50,13 @@ public class GetUserQueryServiceImpl implements GetUserQueryService {
     }
 
     @Override
-    public List<User> handle(ListUsersQuery query) {
-        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public CursorPage<User> handle(ListUsersQuery query) {
+        PageRequest pageable = PageRequest.of(0, query.limit() + 1);
+        CursorKey key = CursorCodec.decodeOrNull(query.cursor());
+        List<User> users = key == null
+                ? userRepository.findAllOrderByCreatedAtAscIdAsc(pageable)
+                : userRepository.findUsersAfter(key.createdAt(), key.id(), pageable);
+        return CursorPages.build(users, query.limit(), User::getCreatedAt, User::getId);
     }
 
     @Override

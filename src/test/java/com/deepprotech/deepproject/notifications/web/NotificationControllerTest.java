@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.notifications.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Notification;
 import com.deepprotech.deepproject.notifications.api.GetNotificationQueryService;
 import com.deepprotech.deepproject.notifications.api.ManageNotificationStatusService;
@@ -47,18 +48,18 @@ class NotificationControllerTest {
 
     @Test
     void listReturnsNotifications() throws Exception {
-        when(getNotificationQueryService.handle(any(ListUserNotificationsQuery.class))).thenReturn(List.of(notif));
+        when(getNotificationQueryService.handle(any(ListUserNotificationsQuery.class))).thenReturn(CursorPage.of(List.of(notif), null, false));
         mockMvc.perform(get("/api/notifications?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(NOTIF_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(NOTIF_ID.toString()));
     }
 
     @Test
     void unreadReturnsNotifications() throws Exception {
-        when(getNotificationQueryService.handle(any(ListUnreadNotificationsQuery.class))).thenReturn(List.of(notif));
+        when(getNotificationQueryService.handle(any(ListUnreadNotificationsQuery.class))).thenReturn(CursorPage.of(List.of(notif), null, false));
         mockMvc.perform(get("/api/notifications/unread?userId=" + USER_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(NOTIF_ID.toString()));
+                .andExpect(jsonPath("$.items[0].id").value(NOTIF_ID.toString()));
     }
 
     @Test

@@ -29,7 +29,7 @@ public class AuditContextInterceptor implements HandlerInterceptor {
         AuditContext.setCurrentUser(username != null ? username : "anonymous");
 
         try {
-            jdbcTemplate.execute("SET LOCAL app.current_user = '" + AuditContext.getCurrentUser() + "'");
+            jdbcTemplate.queryForObject("SELECT set_config('app.current_user', ?, true)", String.class, AuditContext.getCurrentUser());
         } catch (Exception ex) {
             log.warn("Failed to set app.current_user: {}", ex.getMessage());
         }

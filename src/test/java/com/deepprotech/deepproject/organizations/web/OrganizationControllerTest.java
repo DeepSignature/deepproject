@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.organizations.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Organization;
 import com.deepprotech.deepproject.core.OrganizationMember;
 import com.deepprotech.deepproject.organizations.api.CreateOrganizationService;
@@ -11,7 +12,7 @@ import com.deepprotech.deepproject.organizations.commands.AddOrganizationMemberC
 import com.deepprotech.deepproject.organizations.commands.RemoveOrganizationMemberCommand;
 import com.deepprotech.deepproject.organizations.commands.UpdateOrganizationMemberRoleCommand;
 import com.deepprotech.deepproject.organizations.queries.GetOrganizationByIdQuery;
-import com.deepprotech.deepproject.organizations.queries.ListOrganizationMembersQuery;
+import com.deepprotech.deepproject.organizations.queries.PageOrganizationMembersQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,11 +102,11 @@ class OrganizationControllerTest {
     @Test
     void membersReturnsList() throws Exception {
         OrganizationMember member = OrganizationMember.builder().id(MEMBER_ID).organizationId(ORG_ID).userId(USER_ID_2).role("MEMBER").build();
-        when(getOrganizationQueryService.handle(any(ListOrganizationMembersQuery.class))).thenReturn(List.of(member));
+        when(getOrganizationQueryService.handle(any(PageOrganizationMembersQuery.class))).thenReturn(CursorPage.of(List.of(member), null, false));
 
         mockMvc.perform(get("/api/organizations/{id}/members", ORG_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value(USER_ID_2.toString()));
+                .andExpect(jsonPath("$.items[0].userId").value(USER_ID_2.toString()));
     }
 
     @Test

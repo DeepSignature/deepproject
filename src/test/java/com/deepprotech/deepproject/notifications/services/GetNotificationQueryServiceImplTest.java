@@ -9,11 +9,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,14 +31,14 @@ class GetNotificationQueryServiceImplTest {
     @Test
     void listUserNotificationsReturnsNotifications() {
         Notification n = Notification.builder().id(NOTIF_ID).userId(USER_ID).build();
-        when(notificationRepository.findByUserIdOrderByCreatedAtDesc(USER_ID)).thenReturn(List.of(n));
-        assertThat(service.handle(new ListUserNotificationsQuery(USER_ID))).containsExactly(n);
+        when(notificationRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(n));
+        assertThat(service.handle(new ListUserNotificationsQuery(USER_ID, 20, null)).items()).containsExactly(n);
     }
 
     @Test
     void listUnreadReturnsNotifications() {
         Notification n = Notification.builder().id(NOTIF_ID).userId(USER_ID).status("UNREAD").build();
-        when(notificationRepository.findByUserIdAndStatusOrderByCreatedAtDesc(USER_ID, "UNREAD")).thenReturn(List.of(n));
-        assertThat(service.handle(new ListUnreadNotificationsQuery(USER_ID))).containsExactly(n);
+        when(notificationRepository.findByUserIdAndStatus(eq(USER_ID), eq("UNREAD"), any(Pageable.class))).thenReturn(List.of(n));
+        assertThat(service.handle(new ListUnreadNotificationsQuery(USER_ID, 20, null)).items()).containsExactly(n);
     }
 }

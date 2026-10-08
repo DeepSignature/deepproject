@@ -1,5 +1,6 @@
 package com.deepprotech.deepproject.iam.web;
 
+import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.common.security.KeycloakJwtAuthenticationConverter;
 import com.deepprotech.deepproject.common.security.AuthenticatedUserPrincipal;
 import com.deepprotech.deepproject.common.security.SecurityUtils;
@@ -20,13 +21,14 @@ import com.deepprotech.deepproject.iam.queries.GetMeQuery;
 import com.deepprotech.deepproject.iam.queries.GetUserByIdQuery;
 import com.deepprotech.deepproject.iam.queries.ListUsersQuery;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -51,10 +53,11 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-    public ResponseEntity<List<UserResponse>> list() {
-        List<UserResponse> users = getUserQueryService.handle(new ListUsersQuery()).stream()
-                .map(UserResponse::from)
-                .toList();
+    public ResponseEntity<CursorPage<UserResponse>> list(
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit,
+            @RequestParam(required = false) String cursor) {
+        CursorPage<UserResponse> users = getUserQueryService.handle(new ListUsersQuery(limit, cursor))
+                .map(UserResponse::from);
         return ResponseEntity.ok(users);
     }
 
