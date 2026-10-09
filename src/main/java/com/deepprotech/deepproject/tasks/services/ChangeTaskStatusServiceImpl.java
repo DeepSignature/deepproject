@@ -4,6 +4,7 @@ import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.api.ChangeTaskStatusService;
 import com.deepprotech.deepproject.tasks.commands.ChangeTaskStatusCommand;
+import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.events.TaskStatusChangedEvent;
 import com.deepprotech.deepproject.tasks.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +25,47 @@ public class ChangeTaskStatusServiceImpl implements ChangeTaskStatusService {
 
     @Override
     @Transactional
-    public Task handle(ChangeTaskStatusCommand command) {
+    public void handle(ChangeTaskStatusCommand command) {
         Task task = taskRepository.findById(command.taskId())
                 .orElseThrow(() -> new ResourceNotFoundException("Task", command.taskId()));
 
-        String oldStatus = task.getStatus();
-        task.setStatus(command.status());
-        Task updated = taskRepository.save(task);
+        TaskStatus newStatus = command.status();
+        TaskStatus oldStatus = TaskStatus.valueOf(task.getStatus());
 
-        eventPublisher.publishEvent(new TaskStatusChangedEvent(command.taskId(), oldStatus, command.status(), Instant.now()));
+        validateChangeStatus(oldStatus, newStatus);
+
+        updateTask(task, newStatus.name());
+
+        eventPublisher.publishEvent(new TaskStatusChangedEvent(
+                command.taskId(),
+                oldStatus.name(),
+                newStatus.name(),
+                Instant.now()));
+
         log.info("task_status_changed id={} {} -> {}", command.taskId(), oldStatus, command.status());
-        return updated;
     }
+
+    private void validateChangeStatus(TaskStatus oldStatus, TaskStatus newStatus){
+
+        if(oldStatus.equals(newStatus)){
+            return;
+        }
+
+        if(!newStatus.equals(TaskStatus.BLOCKED)
+                &&
+                newStatus.ordinal() < oldStatus.ordinal())
+        {
+            throw new IllegalArgumentException(
+                    String.format("Cannot change task status backwards, from %s to %s", oldStatus, newStatus
+                    ));
+        }
+
+    }
+    private void updateTask(Task task, String newStatus){
+        task.setStatus(newStatus);
+        task.setUpdatedAt(Instant.now());
+
+        taskRepository.save(task);
+    }
+
 }

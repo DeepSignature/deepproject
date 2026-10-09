@@ -111,12 +111,12 @@ class TaskControllerTest {
     }
 
     @Test
-    void updateStatusReturnsOk() throws Exception {
-        Task updated = Task.builder().id(TASK_ID).projectId(PROJECT_ID).title("Task").description("Desc").status("IN_PROGRESS").priority("HIGH").taskType("TASK").build();
-        when(changeTaskStatusService.handle(any())).thenReturn(updated);
-        mockMvc.perform(patch("/api/projects/{projectId}/tasks/{id}/status?status=IN_PROGRESS", PROJECT_ID, TASK_ID))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    void updateStatusReturnsNoContent() throws Exception {
+        mockMvc.perform(patch("/api/projects/{projectId}/tasks/{id}/status", PROJECT_ID, TASK_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isNoContent());
+        verify(changeTaskStatusService).handle(any());
     }
 
     @Test

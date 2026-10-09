@@ -4,6 +4,8 @@ import com.deepprotech.deepproject.common.dto.CursorPage;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.api.*;
 import com.deepprotech.deepproject.tasks.commands.*;
+import com.deepprotech.deepproject.tasks.constants.TaskStatus;
+import com.deepprotech.deepproject.tasks.dto.ChangeStatusRequest;
 import com.deepprotech.deepproject.tasks.dto.CreateTaskRequest;
 import com.deepprotech.deepproject.tasks.dto.TaskResponse;
 import com.deepprotech.deepproject.tasks.dto.UpdateTaskRequest;
@@ -82,9 +84,11 @@ public class TaskController {
 
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('PERMISSION_TASK_STATUS_CHANGE')")
-    public ResponseEntity<TaskResponse> updateStatus(@PathVariable UUID id, @RequestParam String status) {
-        Task t = changeTaskStatusService.handle(new ChangeTaskStatusCommand(id, status));
-        return ResponseEntity.ok(TaskResponse.from(t));
+    public ResponseEntity<Void> updateStatus(@PathVariable UUID id, @RequestBody ChangeStatusRequest request) {
+
+        changeTaskStatusService.handle(new ChangeTaskStatusCommand(id, TaskStatus.valueOf(request.status())));
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/assign")
