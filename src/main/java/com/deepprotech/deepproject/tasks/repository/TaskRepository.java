@@ -267,4 +267,41 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     List<TaskCycleTime> findCompletedCycleTimes(@Param("projectId") UUID projectId,
                                                 @Param("from") Instant from,
                                                 @Param("to") Instant to);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status <> :excludedStatus
+              AND t.dueDate IS NOT NULL
+              AND t.dueDate < :now
+            ORDER BY t.dueDate DESC, t.id DESC
+            """)
+    List<Task> findOverdueTasks(@Param("projectId") UUID projectId,
+                                @Param("excludedStatus") String excludedStatus,
+                                @Param("now") Instant now,
+                                Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status <> :excludedStatus
+              AND t.priority = :priority
+            ORDER BY t.createdAt DESC, t.id DESC
+            """)
+    List<Task> findUrgentOpenTasks(@Param("projectId") UUID projectId,
+                                   @Param("excludedStatus") String excludedStatus,
+                                   @Param("priority") String priority,
+                                   Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status <> :excludedStatus
+              AND t.createdAt < :cutoff
+            ORDER BY t.createdAt ASC, t.id ASC
+            """)
+    List<Task> findStaleTasks(@Param("projectId") UUID projectId,
+                              @Param("excludedStatus") String excludedStatus,
+                              @Param("cutoff") Instant cutoff,
+                              Pageable pageable);
 }

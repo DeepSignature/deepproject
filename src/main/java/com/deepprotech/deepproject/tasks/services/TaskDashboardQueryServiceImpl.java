@@ -13,6 +13,7 @@ import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.constants.TaskType;
 import com.deepprotech.deepproject.tasks.dto.AssigneeDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.PriorityCount;
+import com.deepprotech.deepproject.tasks.dto.ProjectAttentionResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectStatisticsResponse;
 import com.deepprotech.deepproject.tasks.dto.StatusCount;
@@ -24,6 +25,7 @@ import com.deepprotech.deepproject.tasks.dto.TaskStatusCount;
 import com.deepprotech.deepproject.tasks.dto.TaskTypeCount;
 import com.deepprotech.deepproject.tasks.dto.TypeCount;
 import com.deepprotech.deepproject.tasks.queries.GetAssigneeDashboardQuery;
+import com.deepprotech.deepproject.tasks.queries.GetProjectAttentionQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectDashboardQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectStatisticsQuery;
 import com.deepprotech.deepproject.tasks.repository.TaskRepository;
@@ -51,6 +53,8 @@ public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService 
 
     private final TaskRepository taskRepository;
     private final GetUserQueryService getUserQueryService;
+
+    private static final Duration STALE_TASK_THRESHOLD = Duration.ofDays(3);
 
     @Override
     public ProjectDashboardResponse getDashboard(GetProjectDashboardQuery query) {
@@ -113,6 +117,28 @@ public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService 
         TaskPeriodStatistics previous = buildPeriodStatistics(projectId, previousFrom, previousTo);
 
         return new ProjectStatisticsResponse(projectId, from, to, previousFrom, previousTo, current, previous);
+    }
+
+    @Override
+    public ProjectAttentionResponse getAttention(GetProjectAttentionQuery query) {
+        UUID projectId = query.projectId();
+        int limit = query.limit();
+        PageRequest pageable = PageRequest.of(0, limit);
+
+        Instant now = Instant.now();
+        Instant cutoff = now.minus(STALE_TASK_THRESHOLD);
+
+        List<TaskResponse> overdue = taskRepository
+                .findOverdueTasks(projectId, TaskStatus.DONE.name(), now, pageable).stream()
+                .map(TaskResponse::from).toList();
+        List<TaskResponse> highPriority = taskRepository
+                .findUrgentOpenTasks(projectId, TaskStatus.DONE.name(), TaskPriority.URGENT.name(), pageable).stream()
+                .map(TaskResponse::from).toList();
+        List<TaskResponse> stale = taskRepository
+                .findStaleTasks(projectId, TaskStatus.DONE.name(), cutoff, pageable).stream()
+                .map(TaskResponse::from).toList();
+
+        return new ProjectAttentionResponse(projectId, overdue, highPriority, stale);
     }
 
     private TaskPeriodStatistics buildPeriodStatistics(UUID projectId, Instant from, Instant to) {

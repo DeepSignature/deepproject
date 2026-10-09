@@ -4,9 +4,11 @@ import com.deepprotech.deepproject.tasks.api.TaskDashboardQueryService;
 import com.deepprotech.deepproject.tasks.constants.TaskPriority;
 import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.dto.AssigneeDashboardResponse;
+import com.deepprotech.deepproject.tasks.dto.ProjectAttentionResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectStatisticsResponse;
 import com.deepprotech.deepproject.tasks.queries.GetAssigneeDashboardQuery;
+import com.deepprotech.deepproject.tasks.queries.GetProjectAttentionQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectDashboardQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectStatisticsQuery;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,5 +82,15 @@ public class TaskDashboardController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return ResponseEntity.ok(taskDashboardQueryService.getStatistics(
                 new GetProjectStatisticsQuery(projectId, from, to)));
+    }
+
+    @GetMapping("/attention")
+    @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
+    @Operation(summary = "Get project task attention list", description = "Overdue, highest-priority open, and stale tasks needing attention.")
+    public ResponseEntity<ProjectAttentionResponse> attention(
+            @PathVariable UUID projectId,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
+        return ResponseEntity.ok(taskDashboardQueryService.getAttention(
+                new GetProjectAttentionQuery(projectId, limit)));
     }
 }
