@@ -20,4 +20,5 @@ public interface GetUserQueryService {
     Map<UUID, User> handle(GetUsersByIdsQuery query);
     CursorPage<User> handle(ListUsersQuery query);
     List<Role> getUserRoles(UUID userId);
+    User getUserById(UUID userId);
 }

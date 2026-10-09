@@ -73,4 +73,10 @@ public class GetUserQueryServiceImpl implements GetUserQueryService {
     public List<Role> getUserRoles(UUID userId) {
         return roleRepository.findRolesByUserId(userId);
     }
+
+    @Override
+    public User getUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+    }
 }

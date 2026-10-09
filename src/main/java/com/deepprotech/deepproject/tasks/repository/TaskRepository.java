@@ -1,14 +1,17 @@
 package com.deepprotech.deepproject.tasks.repository;
 
 import com.deepprotech.deepproject.core.Task;
+import com.deepprotech.deepproject.tasks.dto.TaskCycleTime;
 import com.deepprotech.deepproject.tasks.dto.TaskPriorityCount;
 import com.deepprotech.deepproject.tasks.dto.TaskStatusCount;
+import com.deepprotech.deepproject.tasks.dto.TaskTypeCount;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -178,4 +181,90 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
                                              @Param("createdAt") Instant createdAt,
                                              @Param("id") UUID id,
                                              Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.createdAt >= :from AND t.createdAt < :to
+            """)
+    long countCreatedInRange(@Param("projectId") UUID projectId,
+                             @Param("from") Instant from,
+                             @Param("to") Instant to);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.completedAt >= :from AND t.completedAt < :to
+            """)
+    long countCompletedInRange(@Param("projectId") UUID projectId,
+                               @Param("from") Instant from,
+                               @Param("to") Instant to);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.dueDate >= :from AND t.dueDate < :to
+              AND t.status <> :excludedStatus
+            """)
+    long countDueNotCompletedInRange(@Param("projectId") UUID projectId,
+                                     @Param("from") Instant from,
+                                     @Param("to") Instant to,
+                                     @Param("excludedStatus") String excludedStatus);
+
+    @Query("""
+            SELECT t.status AS status, COUNT(t) AS count FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.dueDate >= :from AND t.dueDate < :to
+            GROUP BY t.status
+            """)
+    List<TaskStatusCount> countGroupedByStatusDue(@Param("projectId") UUID projectId,
+                                                  @Param("from") Instant from,
+                                                  @Param("to") Instant to);
+
+    @Query("""
+            SELECT t.priority AS priority, COUNT(t) AS count FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.dueDate >= :from AND t.dueDate < :to
+            GROUP BY t.priority
+            """)
+    List<TaskPriorityCount> countGroupedByPriorityDue(@Param("projectId") UUID projectId,
+                                                      @Param("from") Instant from,
+                                                      @Param("to") Instant to);
+
+    @Query("""
+            SELECT t.taskType AS type, COUNT(t) AS count FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.dueDate >= :from AND t.dueDate < :to
+            GROUP BY t.taskType
+            """)
+    List<TaskTypeCount> countGroupedByTypeDue(@Param("projectId") UUID projectId,
+                                              @Param("from") Instant from,
+                                              @Param("to") Instant to);
+
+    @Query("""
+            SELECT SUM(t.estimatedHours) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.createdAt >= :from AND t.createdAt < :to
+            """)
+    BigDecimal sumEstimatedHoursCreated(@Param("projectId") UUID projectId,
+                                        @Param("from") Instant from,
+                                        @Param("to") Instant to);
+
+    @Query("""
+            SELECT SUM(t.actualHours) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.completedAt >= :from AND t.completedAt < :to
+            """)
+    BigDecimal sumActualHoursCompleted(@Param("projectId") UUID projectId,
+                                       @Param("from") Instant from,
+                                       @Param("to") Instant to);
+
+    @Query("""
+            SELECT t.createdAt AS createdAt, t.completedAt AS completedAt FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.completedAt >= :from AND t.completedAt < :to
+            """)
+    List<TaskCycleTime> findCompletedCycleTimes(@Param("projectId") UUID projectId,
+                                                @Param("from") Instant from,
+                                                @Param("to") Instant to);
 }

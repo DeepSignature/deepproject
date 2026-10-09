@@ -5,8 +5,10 @@ import com.deepprotech.deepproject.tasks.constants.TaskPriority;
 import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.dto.AssigneeDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectDashboardResponse;
+import com.deepprotech.deepproject.tasks.dto.ProjectStatisticsResponse;
 import com.deepprotech.deepproject.tasks.queries.GetAssigneeDashboardQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectDashboardQuery;
+import com.deepprotech.deepproject.tasks.queries.GetProjectStatisticsQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -67,5 +69,16 @@ public class TaskDashboardController {
             @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok(taskDashboardQueryService.getAssigneeDashboard(
                 new GetAssigneeDashboardQuery(projectId, assigneeId, from, to, limit, cursor)));
+    }
+
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAuthority('PERMISSION_TASK_READ')")
+    @Operation(summary = "Get project task statistics", description = "Task statistics for a date range plus the preceding equal-length period, for trend comparison.")
+    public ResponseEntity<ProjectStatisticsResponse> statistics(
+            @PathVariable UUID projectId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
+        return ResponseEntity.ok(taskDashboardQueryService.getStatistics(
+                new GetProjectStatisticsQuery(projectId, from, to)));
     }
 }
