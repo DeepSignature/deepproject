@@ -1,7 +1,10 @@
 package com.deepprotech.deepproject.common.security;
 
+import lombok.Getter;
+
 import java.util.Set;
 
+@Getter
 public enum AppRole {
     SYSTEM_ADMIN(Set.of(
             Permission.SYSTEM_ADMIN,
@@ -65,10 +68,6 @@ public enum AppRole {
 
     AppRole(Set<Permission> permissions) {
         this.permissions = permissions;
-    }
-
-    public Set<Permission> getPermissions() {
-        return permissions;
     }
 
     public static AppRole fromName(String roleName) {

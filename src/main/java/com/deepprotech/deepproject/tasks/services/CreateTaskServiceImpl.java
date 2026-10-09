@@ -24,7 +24,7 @@ public class CreateTaskServiceImpl implements CreateTaskService {
     @Override
     @Transactional
     public Task handle(CreateTaskCommand command) {
-        Task t = Task.builder()
+        Task task = Task.builder()
                 .projectId(command.projectId())
                 .title(command.title())
                 .description(command.description())
@@ -33,10 +33,10 @@ public class CreateTaskServiceImpl implements CreateTaskService {
                 .status("TODO")
                 .build();
 
-        t = taskRepository.save(t);
+        task = taskRepository.save(task);
 
-        eventPublisher.publishEvent(new TaskCreatedEvent(t.getId(), t.getTitle(), t.getProjectId(), Instant.now()));
-        log.info("task_created id={} title={}", t.getId(), command.title());
-        return t;
+        eventPublisher.publishEvent(new TaskCreatedEvent(task.getId(), task.getTitle(), task.getProjectId(), Instant.now()));
+        log.info("task_created id={} status={}", task.getId(), command.title());
+        return task;
     }
 }
