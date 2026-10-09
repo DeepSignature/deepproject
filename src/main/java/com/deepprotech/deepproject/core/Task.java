@@ -55,4 +55,7 @@ public class Task extends BaseEntity {
 
     @Column(name = "actual_hours", precision = 10, scale = 2)
     private BigDecimal actualHours;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
 }

@@ -1,6 +1,8 @@
 package com.deepprotech.deepproject.tasks.repository;
 
 import com.deepprotech.deepproject.core.Task;
+import com.deepprotech.deepproject.tasks.dto.TaskPriorityCount;
+import com.deepprotech.deepproject.tasks.dto.TaskStatusCount;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +43,135 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
                                        @Param("createdAt") Instant createdAt,
                                        @Param("id") UUID id,
                                        Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            """)
+    long countByProjectId(@Param("projectId") UUID projectId,
+                          @Param("assigneeId") UUID assigneeId,
+                          @Param("from") Instant from,
+                          @Param("to") Instant to);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status = :status
+              AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            """)
+    long countByProjectIdAndStatus(@Param("projectId") UUID projectId,
+                                   @Param("assigneeId") UUID assigneeId,
+                                   @Param("status") String status,
+                                   @Param("from") Instant from,
+                                   @Param("to") Instant to);
+
+    @Query("""
+            SELECT COUNT(t) FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status <> :excludedStatus
+              AND t.dueDate IS NOT NULL
+              AND t.dueDate < :now
+              AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            """)
+    long countOverdue(@Param("projectId") UUID projectId,
+                      @Param("assigneeId") UUID assigneeId,
+                      @Param("excludedStatus") String excludedStatus,
+                      @Param("now") Instant now,
+                      @Param("from") Instant from,
+                      @Param("to") Instant to);
+
+    @Query("""
+            SELECT t.status AS status, COUNT(t) AS count FROM Task t
+            WHERE t.projectId = :projectId
+              AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            GROUP BY t.status
+            """)
+    List<TaskStatusCount> countGroupedByStatus(@Param("projectId") UUID projectId,
+                                               @Param("assigneeId") UUID assigneeId,
+                                               @Param("from") Instant from,
+                                               @Param("to") Instant to);
+
+    @Query("""
+            SELECT t.priority AS priority, COUNT(t) AS count FROM Task t
+            WHERE t.projectId = :projectId
+              AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            GROUP BY t.priority
+            """)
+    List<TaskPriorityCount> countGroupedByPriority(@Param("projectId") UUID projectId,
+                                                   @Param("assigneeId") UUID assigneeId,
+                                                   @Param("from") Instant from,
+                                                   @Param("to") Instant to);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status = 'DONE'
+              AND t.completedAt IS NOT NULL
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            ORDER BY t.completedAt DESC, t.id DESC
+            """)
+    List<Task> findRecentlyCompleted(@Param("projectId") UUID projectId,
+                                     @Param("from") Instant from,
+                                     @Param("to") Instant to,
+                                     Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.status = 'DONE'
+              AND t.completedAt IS NOT NULL
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (t.completedAt < :completedAt OR (t.completedAt = :completedAt AND t.id < :id))
+            ORDER BY t.completedAt DESC, t.id DESC
+            """)
+    List<Task> findRecentlyCompletedBefore(@Param("projectId") UUID projectId,
+                                           @Param("from") Instant from,
+                                           @Param("to") Instant to,
+                                           @Param("completedAt") Instant completedAt,
+                                           @Param("id") UUID id,
+                                           Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId)
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+            ORDER BY t.createdAt ASC, t.id ASC
+            """)
+    List<Task> findByProjectIdAndAssignee(@Param("projectId") UUID projectId,
+                                          @Param("assigneeId") UUID assigneeId,
+                                          @Param("from") Instant from,
+                                          @Param("to") Instant to,
+                                          Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId)
+              AND (:from IS NULL OR t.dueDate >= :from)
+              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (t.createdAt > :createdAt OR (t.createdAt = :createdAt AND t.id > :id))
+            ORDER BY t.createdAt ASC, t.id ASC
+            """)
+    List<Task> findByProjectIdAndAssigneeAfter(@Param("projectId") UUID projectId,
+                                               @Param("assigneeId") UUID assigneeId,
+                                               @Param("from") Instant from,
+                                               @Param("to") Instant to,
+                                               @Param("createdAt") Instant createdAt,
+                                               @Param("id") UUID id,
+                                               Pageable pageable);
 }
