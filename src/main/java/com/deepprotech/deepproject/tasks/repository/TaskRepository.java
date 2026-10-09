@@ -48,8 +48,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             SELECT COUNT(t) FROM Task t
             WHERE t.projectId = :projectId
               AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             """)
     long countByProjectId(@Param("projectId") UUID projectId,
                           @Param("assigneeId") UUID assigneeId,
@@ -61,8 +61,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             WHERE t.projectId = :projectId
               AND t.status = :status
               AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             """)
     long countByProjectIdAndStatus(@Param("projectId") UUID projectId,
                                    @Param("assigneeId") UUID assigneeId,
@@ -77,8 +77,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
               AND t.dueDate IS NOT NULL
               AND t.dueDate < :now
               AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             """)
     long countOverdue(@Param("projectId") UUID projectId,
                       @Param("assigneeId") UUID assigneeId,
@@ -91,8 +91,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             SELECT t.status AS status, COUNT(t) AS count FROM Task t
             WHERE t.projectId = :projectId
               AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             GROUP BY t.status
             """)
     List<TaskStatusCount> countGroupedByStatus(@Param("projectId") UUID projectId,
@@ -104,8 +104,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             SELECT t.priority AS priority, COUNT(t) AS count FROM Task t
             WHERE t.projectId = :projectId
               AND (:assigneeId IS NULL OR t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId))
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             GROUP BY t.priority
             """)
     List<TaskPriorityCount> countGroupedByPriority(@Param("projectId") UUID projectId,
@@ -116,40 +116,9 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     @Query("""
             SELECT t FROM Task t
             WHERE t.projectId = :projectId
-              AND t.status = 'DONE'
-              AND t.completedAt IS NOT NULL
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
-            ORDER BY t.completedAt DESC, t.id DESC
-            """)
-    List<Task> findRecentlyCompleted(@Param("projectId") UUID projectId,
-                                     @Param("from") Instant from,
-                                     @Param("to") Instant to,
-                                     Pageable pageable);
-
-    @Query("""
-            SELECT t FROM Task t
-            WHERE t.projectId = :projectId
-              AND t.status = 'DONE'
-              AND t.completedAt IS NOT NULL
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
-              AND (t.completedAt < :completedAt OR (t.completedAt = :completedAt AND t.id < :id))
-            ORDER BY t.completedAt DESC, t.id DESC
-            """)
-    List<Task> findRecentlyCompletedBefore(@Param("projectId") UUID projectId,
-                                           @Param("from") Instant from,
-                                           @Param("to") Instant to,
-                                           @Param("completedAt") Instant completedAt,
-                                           @Param("id") UUID id,
-                                           Pageable pageable);
-
-    @Query("""
-            SELECT t FROM Task t
-            WHERE t.projectId = :projectId
               AND t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId)
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
             ORDER BY t.createdAt ASC, t.id ASC
             """)
     List<Task> findByProjectIdAndAssignee(@Param("projectId") UUID projectId,
@@ -162,8 +131,8 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             SELECT t FROM Task t
             WHERE t.projectId = :projectId
               AND t.id IN (SELECT a.taskId FROM TaskAssignee a WHERE a.userId = :assigneeId)
-              AND (:from IS NULL OR t.dueDate >= :from)
-              AND (:to IS NULL OR t.dueDate <= :to)
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
               AND (t.createdAt > :createdAt OR (t.createdAt = :createdAt AND t.id > :id))
             ORDER BY t.createdAt ASC, t.id ASC
             """)
@@ -174,4 +143,39 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
                                                @Param("createdAt") Instant createdAt,
                                                @Param("id") UUID id,
                                                Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
+              AND (:status IS NULL OR t.status IN :status)
+              AND (:priority IS NULL OR t.priority IN :priority)
+            ORDER BY t.createdAt ASC, t.id ASC
+            """)
+    List<Task> findByProjectIdWithRange(@Param("projectId") UUID projectId,
+                                        @Param("from") Instant from,
+                                        @Param("to") Instant to,
+                                        @Param("status") List<String> status,
+                                        @Param("priority") List<String> priority,
+                                        Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Task t
+            WHERE t.projectId = :projectId
+              AND (CAST(:from AS instant) IS NULL OR t.dueDate >= :from)
+              AND (CAST(:to AS instant) IS NULL OR t.dueDate <= :to)
+              AND (:status IS NULL OR t.status IN :status)
+              AND (:priority IS NULL OR t.priority IN :priority)
+              AND (t.createdAt > :createdAt OR (t.createdAt = :createdAt AND t.id > :id))
+            ORDER BY t.createdAt ASC, t.id ASC
+            """)
+    List<Task> findByProjectIdWithRangeAfter(@Param("projectId") UUID projectId,
+                                             @Param("from") Instant from,
+                                             @Param("to") Instant to,
+                                             @Param("status") List<String> status,
+                                             @Param("priority") List<String> priority,
+                                             @Param("createdAt") Instant createdAt,
+                                             @Param("id") UUID id,
+                                             Pageable pageable);
 }

@@ -11,6 +11,5 @@ public record ProjectDashboardResponse(
         double completionPercentage,
         List<StatusCount> tasksByStatus,
         List<PriorityCount> tasksByPriority,
-        List<AssigneeCount> tasksPerAssignee,
-        CursorPage<TaskResponse> recentlyCompletedTasks
+        CursorPage<TaskResponse> tasks
 ) {}

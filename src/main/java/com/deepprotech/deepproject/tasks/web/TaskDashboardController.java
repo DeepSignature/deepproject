@@ -1,11 +1,15 @@
 package com.deepprotech.deepproject.tasks.web;
 
 import com.deepprotech.deepproject.tasks.api.TaskDashboardQueryService;
+import com.deepprotech.deepproject.tasks.constants.TaskPriority;
+import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.dto.AssigneeDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.ProjectDashboardResponse;
 import com.deepprotech.deepproject.tasks.queries.GetAssigneeDashboardQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectDashboardQuery;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -37,10 +42,17 @@ public class TaskDashboardController {
             @PathVariable UUID projectId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int recentLimit,
-            @RequestParam(required = false) String recentCursor) {
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int taskLimit,
+            @RequestParam(required = false) String taskCursor,
+            @Parameter(explode = Explode.FALSE) @RequestParam(required = false) List<TaskStatus> status,
+            @Parameter(explode = Explode.FALSE) @RequestParam(required = false) List<TaskPriority> priority) {
         return ResponseEntity.ok(taskDashboardQueryService.getDashboard(
-                new GetProjectDashboardQuery(projectId, from, to, recentLimit, recentCursor)));
+                new GetProjectDashboardQuery(projectId, from, to, taskLimit, taskCursor,
+                        toNames(status), toNames(priority))));
+    }
+
+    private static <E extends Enum<E>> List<String> toNames(List<E> values) {
+        return values == null ? null : values.stream().map(Enum::name).toList();
     }
 
     @GetMapping("/assignee/{assigneeId}/task")

@@ -8,13 +8,10 @@ import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.core.User;
 import com.deepprotech.deepproject.iam.api.GetUserQueryService;
 import com.deepprotech.deepproject.iam.queries.GetUserByIdQuery;
-import com.deepprotech.deepproject.iam.queries.GetUsersByIdsQuery;
 import com.deepprotech.deepproject.tasks.api.TaskDashboardQueryService;
 import com.deepprotech.deepproject.tasks.constants.TaskPriority;
 import com.deepprotech.deepproject.tasks.constants.TaskStatus;
-import com.deepprotech.deepproject.tasks.dto.AssigneeCount;
 import com.deepprotech.deepproject.tasks.dto.AssigneeDashboardResponse;
-import com.deepprotech.deepproject.tasks.dto.AssigneeTaskCount;
 import com.deepprotech.deepproject.tasks.dto.PriorityCount;
 import com.deepprotech.deepproject.tasks.dto.ProjectDashboardResponse;
 import com.deepprotech.deepproject.tasks.dto.StatusCount;
@@ -23,7 +20,6 @@ import com.deepprotech.deepproject.tasks.dto.TaskResponse;
 import com.deepprotech.deepproject.tasks.dto.TaskStatusCount;
 import com.deepprotech.deepproject.tasks.queries.GetAssigneeDashboardQuery;
 import com.deepprotech.deepproject.tasks.queries.GetProjectDashboardQuery;
-import com.deepprotech.deepproject.tasks.repository.TaskAssigneeRepository;
 import com.deepprotech.deepproject.tasks.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -47,7 +41,6 @@ import java.util.UUID;
 public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService {
 
     private final TaskRepository taskRepository;
-    private final TaskAssigneeRepository taskAssigneeRepository;
     private final GetUserQueryService getUserQueryService;
 
     @Override
@@ -64,12 +57,11 @@ public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService 
                 taskRepository.countGroupedByStatus(projectId, null, from, to));
         List<PriorityCount> byPriority = buildPriorityCounts(
                 taskRepository.countGroupedByPriority(projectId, null, from, to));
-        List<AssigneeCount> perAssignee = buildAssigneeCounts(
-                taskAssigneeRepository.countGroupedByAssignee(projectId, from, to));
-        CursorPage<TaskResponse> recentlyCompleted = recentlyCompleted(projectId, from, to, query.recentLimit(), query.recentCursor());
+        CursorPage<TaskResponse> tasks = allTasks(projectId, from, to, query.status(), query.priority(),
+                query.taskLimit(), query.taskCursor());
 
         return new ProjectDashboardResponse(total, overdue, completed,
-                completionPercentage(completed, total), byStatus, byPriority, perAssignee, recentlyCompleted);
+                completionPercentage(completed, total), byStatus, byPriority, tasks);
     }
 
     @Override
@@ -95,13 +87,22 @@ public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService 
                 completionPercentage(completed, total), byStatus, byPriority, tasks);
     }
 
-    private CursorPage<TaskResponse> recentlyCompleted(UUID projectId, Instant from, Instant to, int limit, String cursor) {
+    private CursorPage<TaskResponse> allTasks(UUID projectId, Instant from, Instant to,
+                                              List<String> status, List<String> priority,
+                                              int limit, String cursor) {
+        List<String> normalizedStatus = normalize(status);
+        List<String> normalizedPriority = normalize(priority);
         PageRequest pageable = PageRequest.of(0, limit + 1);
         CursorKey key = CursorCodec.decodeOrNull(cursor);
         List<Task> tasks = key == null
-                ? taskRepository.findRecentlyCompleted(projectId, from, to, pageable)
-                : taskRepository.findRecentlyCompletedBefore(projectId, from, to, key.createdAt(), key.id(), pageable);
-        return CursorPages.build(tasks, limit, Task::getCompletedAt, Task::getId).map(TaskResponse::from);
+                ? taskRepository.findByProjectIdWithRange(projectId, from, to, normalizedStatus, normalizedPriority, pageable)
+                : taskRepository.findByProjectIdWithRangeAfter(projectId, from, to, normalizedStatus, normalizedPriority,
+                        key.createdAt(), key.id(), pageable);
+        return CursorPages.build(tasks, limit, Task::getCreatedAt, Task::getId).map(TaskResponse::from);
+    }
+
+    private static List<String> normalize(List<String> values) {
+        return values == null || values.isEmpty() ? null : values;
     }
 
     private CursorPage<TaskResponse> assigneeTasks(UUID projectId, UUID assigneeId, Instant from, Instant to,
@@ -129,21 +130,6 @@ public class TaskDashboardQueryServiceImpl implements TaskDashboardQueryService 
         rows.forEach(r -> counts.put(r.getPriority(), r.getCount()));
         return counts.entrySet().stream()
                 .map(e -> new PriorityCount(e.getKey(), e.getValue()))
-                .toList();
-    }
-
-    private List<AssigneeCount> buildAssigneeCounts(List<AssigneeTaskCount> rows) {
-        if (rows.isEmpty()) {
-            return List.of();
-        }
-        List<UUID> ids = rows.stream().map(AssigneeTaskCount::getAssigneeId).toList();
-        Map<UUID, User> users = getUserQueryService.handle(new GetUsersByIdsQuery(Set.copyOf(ids)));
-        return rows.stream()
-                .map(r -> {
-                    User user = users.get(r.getAssigneeId());
-                    return new AssigneeCount(r.getAssigneeId(), displayName(user), r.getCount());
-                })
-                .sorted(Comparator.comparing(AssigneeCount::displayName))
                 .toList();
     }
 
