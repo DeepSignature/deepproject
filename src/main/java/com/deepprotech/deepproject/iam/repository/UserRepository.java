@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,4 +31,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             ORDER BY u.createdAt ASC, u.id ASC
             """)
     List<User> findUsersAfter(@Param("createdAt") Instant createdAt, @Param("id") UUID id, Pageable pageable);
+
+    List<User> findByIdIn(Collection<UUID> ids);
 }

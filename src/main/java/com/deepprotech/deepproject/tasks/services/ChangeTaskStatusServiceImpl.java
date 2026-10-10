@@ -4,6 +4,7 @@ import com.deepprotech.deepproject.common.exception.ResourceNotFoundException;
 import com.deepprotech.deepproject.core.Task;
 import com.deepprotech.deepproject.tasks.api.ChangeTaskStatusService;
 import com.deepprotech.deepproject.tasks.commands.ChangeTaskStatusCommand;
+import com.deepprotech.deepproject.tasks.constants.TaskStatus;
 import com.deepprotech.deepproject.tasks.events.TaskStatusChangedEvent;
 import com.deepprotech.deepproject.tasks.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ChangeTaskStatusServiceImpl implements ChangeTaskStatusService {
 
         String oldStatus = task.getStatus();
         task.setStatus(command.status());
+        task.setCompletedAt(TaskStatus.DONE.name().equals(command.status()) ? Instant.now() : null);
         Task updated = taskRepository.save(task);
 
         eventPublisher.publishEvent(new TaskStatusChangedEvent(command.taskId(), oldStatus, command.status(), Instant.now()));

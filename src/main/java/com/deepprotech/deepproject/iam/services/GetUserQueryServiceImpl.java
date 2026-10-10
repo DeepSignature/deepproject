@@ -11,6 +11,7 @@ import com.deepprotech.deepproject.iam.api.GetUserQueryService;
 import com.deepprotech.deepproject.iam.queries.GetUserByIdQuery;
 import com.deepprotech.deepproject.iam.queries.GetUserByIdentityIdQuery;
 import com.deepprotech.deepproject.iam.queries.GetUserByUsernameQuery;
+import com.deepprotech.deepproject.iam.queries.GetUsersByIdsQuery;
 import com.deepprotech.deepproject.iam.queries.ListUsersQuery;
 import com.deepprotech.deepproject.iam.repository.RoleRepository;
 import com.deepprotech.deepproject.iam.repository.UserRepository;
@@ -21,7 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,6 +54,12 @@ public class GetUserQueryServiceImpl implements GetUserQueryService {
     }
 
     @Override
+    public Map<UUID, User> handle(GetUsersByIdsQuery query) {
+        return userRepository.findByIdIn(query.userIds()).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+    }
+
+    @Override
     public CursorPage<User> handle(ListUsersQuery query) {
         PageRequest pageable = PageRequest.of(0, query.limit() + 1);
         CursorKey key = CursorCodec.decodeOrNull(query.cursor());
@@ -62,5 +72,11 @@ public class GetUserQueryServiceImpl implements GetUserQueryService {
     @Override
     public List<Role> getUserRoles(UUID userId) {
         return roleRepository.findRolesByUserId(userId);
+    }
+
+    @Override
+    public User getUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
     }
 }
