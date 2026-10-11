@@ -1,13 +1,19 @@
 package com.deepprotech.deepproject.common.security;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Set;
 
+@Getter
+@Slf4j
 public enum AppRole {
     SYSTEM_ADMIN(Set.of(
             Permission.SYSTEM_ADMIN,
             Permission.ORG_CREATE, Permission.ORG_READ, Permission.ORG_UPDATE, Permission.ORG_DELETE, Permission.ORG_MEMBER_MANAGE,
             Permission.WORKSPACE_CREATE, Permission.WORKSPACE_READ, Permission.WORKSPACE_UPDATE, Permission.WORKSPACE_DELETE, Permission.WORKSPACE_MEMBER_MANAGE,
             Permission.PROJECT_CREATE, Permission.PROJECT_READ, Permission.PROJECT_UPDATE, Permission.PROJECT_DELETE, Permission.PROJECT_MEMBER_MANAGE,
+            Permission.SPRINT_CREATE, Permission.SPRINT_READ, Permission.SPRINT_UPDATE, Permission.SPRINT_DELETE, Permission.SPRINT_MANAGE,
             Permission.TASK_CREATE, Permission.TASK_READ, Permission.TASK_UPDATE, Permission.TASK_DELETE, Permission.TASK_ASSIGN, Permission.TASK_STATUS_CHANGE,
             Permission.COMMENT_CREATE, Permission.COMMENT_READ, Permission.COMMENT_UPDATE_OWN, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_DELETE_ANY,
             Permission.NOTIFICATION_READ, Permission.NOTIFICATION_MANAGE
@@ -17,6 +23,7 @@ public enum AppRole {
             Permission.ORG_READ, Permission.ORG_UPDATE, Permission.ORG_MEMBER_MANAGE,
             Permission.WORKSPACE_CREATE, Permission.WORKSPACE_READ, Permission.WORKSPACE_UPDATE, Permission.WORKSPACE_DELETE, Permission.WORKSPACE_MEMBER_MANAGE,
             Permission.PROJECT_CREATE, Permission.PROJECT_READ, Permission.PROJECT_UPDATE, Permission.PROJECT_DELETE, Permission.PROJECT_MEMBER_MANAGE,
+            Permission.SPRINT_CREATE, Permission.SPRINT_READ, Permission.SPRINT_UPDATE, Permission.SPRINT_DELETE, Permission.SPRINT_MANAGE,
             Permission.TASK_CREATE, Permission.TASK_READ, Permission.TASK_UPDATE, Permission.TASK_DELETE, Permission.TASK_ASSIGN, Permission.TASK_STATUS_CHANGE,
             Permission.COMMENT_CREATE, Permission.COMMENT_READ, Permission.COMMENT_UPDATE_OWN, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_DELETE_ANY,
             Permission.NOTIFICATION_READ, Permission.NOTIFICATION_MANAGE
@@ -26,6 +33,7 @@ public enum AppRole {
             Permission.ORG_READ,
             Permission.WORKSPACE_READ,
             Permission.PROJECT_READ,
+            Permission.SPRINT_READ,
             Permission.TASK_READ,
             Permission.COMMENT_READ,
             Permission.NOTIFICATION_READ
@@ -34,6 +42,7 @@ public enum AppRole {
     WORKSPACE_ADMIN(Set.of(
             Permission.WORKSPACE_READ, Permission.WORKSPACE_UPDATE, Permission.WORKSPACE_MEMBER_MANAGE,
             Permission.PROJECT_CREATE, Permission.PROJECT_READ, Permission.PROJECT_UPDATE, Permission.PROJECT_DELETE, Permission.PROJECT_MEMBER_MANAGE,
+            Permission.SPRINT_CREATE, Permission.SPRINT_READ, Permission.SPRINT_UPDATE, Permission.SPRINT_DELETE, Permission.SPRINT_MANAGE,
             Permission.TASK_CREATE, Permission.TASK_READ, Permission.TASK_UPDATE, Permission.TASK_DELETE, Permission.TASK_ASSIGN, Permission.TASK_STATUS_CHANGE,
             Permission.COMMENT_CREATE, Permission.COMMENT_READ, Permission.COMMENT_UPDATE_OWN, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_DELETE_ANY,
             Permission.NOTIFICATION_READ, Permission.NOTIFICATION_MANAGE
@@ -41,6 +50,7 @@ public enum AppRole {
 
     PROJECT_MANAGER(Set.of(
             Permission.PROJECT_READ, Permission.PROJECT_UPDATE, Permission.PROJECT_MEMBER_MANAGE,
+            Permission.SPRINT_CREATE, Permission.SPRINT_READ, Permission.SPRINT_UPDATE, Permission.SPRINT_DELETE, Permission.SPRINT_MANAGE,
             Permission.TASK_CREATE, Permission.TASK_READ, Permission.TASK_UPDATE, Permission.TASK_DELETE, Permission.TASK_ASSIGN, Permission.TASK_STATUS_CHANGE,
             Permission.COMMENT_CREATE, Permission.COMMENT_READ, Permission.COMMENT_UPDATE_OWN, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_DELETE_ANY,
             Permission.NOTIFICATION_READ
@@ -48,6 +58,7 @@ public enum AppRole {
 
     CONTRIBUTOR(Set.of(
             Permission.PROJECT_READ,
+            Permission.SPRINT_READ,
             Permission.TASK_READ, Permission.TASK_CREATE, Permission.TASK_UPDATE, Permission.TASK_STATUS_CHANGE,
             Permission.COMMENT_CREATE, Permission.COMMENT_READ, Permission.COMMENT_UPDATE_OWN,
             Permission.NOTIFICATION_READ
@@ -56,6 +67,7 @@ public enum AppRole {
     VIEWER(Set.of(
             Permission.WORKSPACE_READ,
             Permission.PROJECT_READ,
+            Permission.SPRINT_READ,
             Permission.TASK_READ,
             Permission.COMMENT_READ,
             Permission.NOTIFICATION_READ
@@ -65,10 +77,6 @@ public enum AppRole {
 
     AppRole(Set<Permission> permissions) {
         this.permissions = permissions;
-    }
-
-    public Set<Permission> getPermissions() {
-        return permissions;
     }
 
     public static AppRole fromName(String roleName) {
